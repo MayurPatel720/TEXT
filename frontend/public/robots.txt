@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://textiledesignpro.com/sitemap.xml
+
+# Crawl delay (optional, for high-traffic sites)
+# Crawl-delay: 10
