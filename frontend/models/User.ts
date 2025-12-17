@@ -78,9 +78,8 @@ const UserSchema = new mongoose.Schema({
 });
 
 // Update the updatedAt timestamp before saving
-UserSchema.pre('save', function(next) {
+UserSchema.pre('save', function() {
   this.updatedAt = new Date();
-  next();
 });
 
 // Method to deduct credits
@@ -97,7 +96,7 @@ UserSchema.methods.deductCredits = async function(amount = 1) {
 };
 
 // Method to add credits
-UserSchema.methods.addCredits = async function(amount) {
+UserSchema.methods.addCredits = async function(amount: number) {
   this.credits += amount;
   await this.save();
   return this.credits;

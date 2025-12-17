@@ -77,9 +77,8 @@ const GenerationSchema = new mongoose.Schema({
 GenerationSchema.index({ userId: 1, createdAt: -1 });
 
 // Update the updatedAt timestamp before saving
-GenerationSchema.pre('save', function(next) {
+GenerationSchema.pre('save', function() {
   this.updatedAt = new Date();
-  next();
 });
 
 // Static method to get user's generation history
