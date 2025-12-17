@@ -1,36 +1,171 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎨 Textile Design AI - MVP
 
-## Getting Started
+An AI-powered textile design generation platform built with Next.js, featuring authentication, credit-based usage, and Razorpay payment integration.
 
-First, run the development server:
+## ✨ Features
 
+- 🎨 **AI-Powered Design Generation** - Generate textile designs using Replicate's Flux Kontext Fast model
+- 🔐 **Authentication** - NextAuth with Google OAuth and email/password
+- 💳 **Credit System** - Track and manage user credits
+- 💰 **Payment Integration** - Razorpay for purchasing credits
+- 📊 **Generation History** - View and manage all generated designs
+- 🎯 **Production Ready** - Optimized build, security headers, and image optimization
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+ installed
+- MongoDB database (local or Atlas)
+- Replicate API account
+- (Optional) Google OAuth credentials
+- (Optional) Razorpay account
+
+### Installation
+
+1. **Clone the repository**
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <your-repo-url>
+cd textile-design-mvp/frontend
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Install dependencies**
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Configure environment variables**
+```bash
+cp env.template .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Edit `.env.local` with your credentials:
+```env
+# Required
+REPLICATE_API_TOKEN=your-replicate-api-token
+NEXTAUTH_SECRET=your-secret-key
+NEXTAUTH_URL=http://localhost:3000
+MONGODB_URI=your-mongodb-connection-string
 
-## Learn More
+# Optional
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+NEXT_PUBLIC_RAZORPAY_KEY=your-razorpay-key
+RAZORPAY_SECRET=your-razorpay-secret
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. **Run development server**
+```bash
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📦 Production Build
 
-## Deploy on Vercel
+```bash
+npm run build
+npm start
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🌐 Deploy to Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+
+1. Push your code to GitHub
+2. Import repository in Vercel
+3. Add environment variables in Vercel dashboard
+4. Deploy!
+
+## 🏗️ Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Styling**: Tailwind CSS
+- **Authentication**: NextAuth.js
+- **Database**: MongoDB with Mongoose
+- **AI**: Replicate API (Flux Kontext Fast)
+- **Payment**: Razorpay
+- **Deployment**: Vercel
+
+## 📁 Project Structure
+
+```
+frontend/
+├── app/
+│   ├── (auth)/          # Authentication pages
+│   ├── api/             # API routes
+│   ├── studio/          # Design studio page
+│   ├── history/         # Generation history
+│   └── layout.tsx       # Root layout
+├── components/          # React components
+├── lib/                 # Utilities
+├── models/              # MongoDB models
+├── types/               # TypeScript types
+└── public/              # Static assets
+```
+
+## 🔑 Environment Variables
+
+See [`env.template`](env.template) for all available environment variables and setup instructions.
+
+### Generate NextAuth Secret
+```bash
+openssl rand -base64 32
+```
+
+## 🎯 Key Features
+
+### Authentication
+- Email/password registration and login
+- Google OAuth integration
+- Secure session management with JWT
+
+### AI Generation
+- Upload reference images
+- Custom prompts for design variations
+- Style strength control
+- Multiple variations per generation
+- Credit-based usage (1 credit per image)
+
+### Credit System
+- Track user credits in real-time
+- Automatic deduction on generation
+- Purchase credits via Razorpay
+- Free credits on signup
+
+### Generation History
+- View all generated designs
+- Download images
+- Filter and search
+- Pagination support
+
+## 🔒 Security Features
+
+- Security headers (X-Frame-Options, CSP, etc.)
+- Input validation and sanitization
+- Authentication required for API routes
+- MongoDB injection protection
+- HTTPS enforcement in production
+
+## 🎨 API Routes
+
+- `POST /api/generate` - Generate textile designs
+- `GET /api/history` - Get generation history
+- `POST /api/payment/create-order` - Create Razorpay order
+- `POST /api/auth/[...nextauth]` - NextAuth endpoints
+
+## 📝 License
+
+MIT
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📧 Support
+
+For support, email your-email@example.com or open an issue.
+
+---
+
+Built with ❤️ using Next.js and AI
