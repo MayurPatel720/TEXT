@@ -1,6 +1,6 @@
 "use client";
 
-import { VariationParams } from "@/app/page";
+import { VariationParams } from "@/types/variation";
 
 interface ControlPanelProps {
   params: VariationParams;
