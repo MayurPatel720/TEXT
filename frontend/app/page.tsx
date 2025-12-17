@@ -10,9 +10,9 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-[var(--bg-primary)]">
       <Header />
-      
+
       {/* Hero Section */}
-      <section className="relative pt-32 pb-24 px-6 overflow-hidden">
+      <section className="relative pt-32 pb-24 px-6 overflow-hidden z-10">
         {/* Animated gradient background */}
         <motion.div 
           className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-pink-900/20 opacity-30 pointer-events-none"
@@ -120,11 +120,8 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 px-6 bg-gradient-to-b from-[var(--bg-secondary)] via-purple-950/10 to-[var(--bg-secondary)] relative overflow-hidden">
-        {/* Decorative gradient */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
-        
-        <div className="max-w-6xl mx-auto">
+      <section id="features" className="py-20 px-6 relative z-10">
+        <div className="max-w-7xl mx-auto">
           <motion.div 
             className="text-center mb-16"
             initial={{ opacity: 0, y: 30 }}
@@ -132,31 +129,35 @@ export default function HomePage() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-              Why Choose FabricDesigner.AI?
+            <h2 className="text-5xl md:text-7xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-teal-400 bg-clip-text text-transparent">
+                Why Choose
+              </span>
+              <br />
+              <span className="text-white">FabricDesigner.AI?</span>
             </h2>
-            <p className="text-xl text-[var(--text-secondary)] max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-[var(--text-secondary)] max-w-3xl mx-auto leading-relaxed">
               Professional-grade textile design tools powered by cutting-edge AI technology
             </p>
           </motion.div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 md:gap-12">
             <FeatureCard
-              icon={<Zap className="w-8 h-8" />}
+              icon={<Zap className="w-10 h-10" />}
               title="Lightning Fast"
               description="Generate professional textile designs in seconds, not hours. AI-powered speed meets human creativity."
               delay={0}
             />
             
             <FeatureCard
-              icon={<Palette className="w-8 h-8" />}
+              icon={<Palette className="w-10 h-10" />}
               title="Print-Ready Quality"
               description="High-resolution, professionally optimized patterns ready for textile manufacturing. Perfect colors, seamless tiles."
               delay={0.1}
             />
             
             <FeatureCard
-              icon={<Shield className="w-8 h-8" />}
+              icon={<Shield className="w-10 h-10" />}
               title="Secure & Private"
               description="Your designs stay yours. Bank-level security, private generations, complete ownership of all outputs."
               delay={0.2}
@@ -166,76 +167,55 @@ export default function HomePage() {
       </section>
 
       {/* Showcase Section */}
-      <section id="showcase" className="py-24 px-6 relative">
-        {/* Background gradient orb */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-blue-500/10 to-purple-500/10 blur-3xl rounded-full" />
-        
-        <div className="max-w-6xl mx-auto relative z-10">
+      <section id="showcase" className="py-20 px-6 relative z-10">
+        <div className="max-w-7xl mx-auto">
           <motion.div 
             className="text-center mb-16"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-200 via-white to-purple-200 bg-clip-text text-transparent">
-              Stunning Results
+            <h2 className="text-5xl md:text-7xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-blue-400 via-teal-400 to-green-400 bg-clip-text text-transparent">
+                Stunning Results
+              </span>
             </h2>
-            <p className="text-xl text-[var(--text-secondary)]">
+            <p className="text-xl md:text-2xl text-[var(--text-secondary)]">
               See what's possible with AI-powered textile design
             </p>
           </motion.div>
           
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12">
             <ShowcaseCard
               title="Floral Patterns"
               description="Intricate, seamless floral designs for premium fabrics"
+              gradient="from-pink-500/20 to-purple-500/20"
+              icon={<Palette className="w-12 h-12 text-pink-400" />}
             />
             <ShowcaseCard
               title="Geometric Designs"
               description="Modern, bold geometric patterns for contemporary textiles"
+              gradient="from-blue-500/20 to-teal-500/20"
+              icon={<Sparkles className="w-12 h-12 text-teal-400" />}
             />
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-6 bg-[var(--bg-secondary)]">
+      <section id="pricing" className="py-20 px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Simple, Transparent Pricing
+          <div className="text-center mb-16">
+            <h2 className="text-5xl md:text-7xl font-bold mb-6">
+              <span className="text-white">Simple Pricing</span>
             </h2>
-            <p className="text-xl text-[var(--text-secondary)]">
-              Choose the plan that fits your needs. Upgrade or downgrade anytime.
+            <p className="text-xl md:text-2xl text-[var(--text-secondary)]">
+              Choose the plan that fits your needs
             </p>
           </div>
           
           <PricingToggle />
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-24 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="card p-12 bg-gradient-to-br from-[var(--accent-glow)] to-[var(--bg-secondary)] border-[var(--accent)]/20"
-          >
-            <Sparkles className="w-12 h-12 text-[var(--accent)] mx-auto mb-6" />
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to Transform Your Designs?
-            </h2>
-            <p className="text-xl text-[var(--text-secondary)] mb-8">
-              Join designers and manufacturers creating stunning textile patterns with AI
-            </p>
-            <Link href="/studio" className="btn btn-primary btn-lg">
-              <Sparkles className="w-5 h-5" />
-              Get Started Free
-            </Link>
-          </motion.div>
         </div>
       </section>
 
@@ -250,33 +230,49 @@ function FeatureCard({ icon, title, description, delay }: { icon: React.ReactNod
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay }}
-      className="card p-8 text-center hover:border-[var(--accent)] transition-colors"
+      transition={{ delay, duration: 0.5 }}
+      className="group relative h-full"
     >
-      <div className="w-16 h-16 rounded-2xl bg-[var(--accent-glow)] flex items-center justify-center mx-auto mb-6">
-        <div className="text-[var(--accent)]">{icon}</div>
+      <div className="relative p-10 h-full rounded-3xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--border-hover)] transition-all duration-500 flex flex-col">
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-500/0 via-blue-500/0 to-teal-500/0 group-hover:from-purple-500/5 group-hover:via-blue-500/5 group-hover:to-teal-500/5 transition-all duration-500 pointer-events-none" />
+        <div className="relative z-10 flex flex-col h-full">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 border border-[var(--border)] border-opacity-20">
+            <div className="text-purple-400 group-hover:text-blue-400 transition-colors duration-500 [&>svg]:w-8 [&>svg]:h-8">{icon}</div>
+          </div>
+          <h3 className="text-2xl font-bold mb-4 group-hover:text-white transition-colors duration-300">{title}</h3>
+          <p className="text-[var(--text-secondary)] leading-relaxed text-lg">{description}</p>
+        </div>
       </div>
-      <h3 className="text-xl font-semibold mb-3">{title}</h3>
-      <p className="text-[var(--text-secondary)]">{description}</p>
     </motion.div>
   );
 }
 
-function ShowcaseCard({ title, description }: { title: string; description: string }) {
+function ShowcaseCard({ title, description, gradient, icon }: { title: string; description: string; gradient: string; icon: React.ReactNode }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="card overflow-hidden group cursor-pointer hover:border-[var(--accent)] transition-all"
+      className="group relative aspect-[4/3] rounded-3xl overflow-hidden cursor-pointer"
     >
-      <div className="aspect-video bg-[var(--bg-elevated)] flex items-center justify-center border-b border-[var(--border)] group-hover:bg-[var(--accent-glow)] transition-colors">
-        <Palette className="w-16 h-16 text-[var(--accent)] opacity-40 group-hover:opacity-60 transition-opacity" />
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-20 group-hover:opacity-30 transition-opacity duration-500`} />
+      <div className="absolute inset-0 bg-[var(--bg-card)] -z-10" />
+      
+      <div className="absolute inset-0 border border-[var(--border)] rounded-3xl group-hover:border-[var(--border-hover)] transition-colors duration-500 pointer-events-none" />
+
+      <div className="h-full flex flex-col justify-between p-10 relative z-10">
+        <div className="w-20 h-20 rounded-2xl bg-[var(--bg-elevated)]/50 backdrop-blur-sm border border-[var(--border)] flex items-center justify-center transform group-hover:-translate-y-2 transition-transform duration-500">
+          {icon}
+        </div>
+
+        <div>
+          <h3 className="text-3xl font-bold mb-3 text-white group-hover:translate-x-2 transition-transform duration-300">{title}</h3>
+          <p className="text-lg text-[var(--text-secondary)] max-w-md group-hover:text-white transition-colors duration-300">{description}</p>
+        </div>
       </div>
-      <div className="p-6">
-        <h3 className="text-xl font-semibold mb-2">{title}</h3>
-        <p className="text-[var(--text-secondary)]">{description}</p>
-      </div>
+      
+      {/* Hover Glow */}
+      <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-white/5 blur-3xl rounded-full group-hover:bg-white/10 transition-colors duration-500 pointer-events-none" />
     </motion.div>
   );
 }
@@ -297,30 +293,47 @@ function PricingCard({ name, price, priceUnit, description, features, cta, href,
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className={`card p-8 relative ${highlighted ? 'border-[var(--accent)] shadow-lg shadow-[var(--accent-glow)]' : ''}`}
+      className={`relative p-8 rounded-3xl border flex flex-col h-full transition-all duration-300 ${
+        highlighted 
+          ? 'bg-[var(--bg-card)] border-[var(--accent)] shadow-[0_0_40px_-10px_var(--accent-glow)]' 
+          : 'bg-transparent border-[var(--border)] hover:border-[var(--border-hover)]'
+      }`}
     >
       {badge && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[var(--accent)] text-white text-xs font-semibold">
+        <div className="absolute -top-4 left-8 px-4 py-1 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold tracking-wider uppercase shadow-lg">
           {badge}
         </div>
       )}
-      <h3 className="text-2xl font-bold mb-2">{name}</h3>
-      <div className="mb-4">
-        <span className="text-4xl font-bold">{price}</span>
+      
+      <div className="mb-8">
+        <h3 className="text-xl font-bold mb-2 text-white">{name}</h3>
+        <p className="text-[var(--text-secondary)] text-sm">{description}</p>
+      </div>
+
+      <div className="mb-8 flex items-baseline gap-1">
+        <span className="text-4xl md:text-5xl font-bold text-white tracking-tight">{price}</span>
         {priceUnit && <span className="text-[var(--text-secondary)]">{priceUnit}</span>}
       </div>
-      <p className="text-[var(--text-secondary)] mb-6">{description}</p>
       
-      <ul className="space-y-4 mb-8">
+      <ul className="space-y-4 mb-8 flex-1">
         {features.map((feature, i) => (
           <li key={i} className="flex items-start gap-3">
-            <Check className="w-5 h-5 text-[var(--accent)] flex-shrink-0 mt-0.5" />
-            <span className="text-sm">{feature}</span>
+            <div className={`mt-1 rounded-full p-0.5 ${highlighted ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-800 text-gray-400'}`}>
+              <Check className="w-3.5 h-3.5" />
+            </div>
+            <span className={`text-sm ${highlighted ? 'text-gray-200' : 'text-gray-400'}`}>{feature}</span>
           </li>
         ))}
       </ul>
       
-      <Link href={href} className={`btn ${highlighted ? 'btn-primary' : 'btn-secondary'} w-full`}>
+      <Link 
+        href={href} 
+        className={`btn w-full py-4 rounded-xl font-semibold text-center transition-all duration-300 ${
+          highlighted 
+            ? 'btn-primary' 
+            : 'bg-transparent border border-[var(--border)] text-white hover:bg-[var(--bg-elevated)]'
+        }`}
+      >
         {cta}
       </Link>
     </motion.div>
@@ -332,25 +345,23 @@ function PricingToggle() {
   
   return (
     <>
-      {/* Toggle */}
-      <div className="flex items-center justify-center gap-4 mb-12">
-        <span className={`text-sm font-medium ${!isYearly ? 'text-white' : 'text-[var(--text-secondary)]'}`}>
+      <div className="flex items-center justify-center gap-4 mb-16">
+        <span className={`text-sm font-medium transition-colors ${!isYearly ? 'text-white' : 'text-[var(--text-secondary)]'}`}>
           Monthly
         </span>
         <button
           onClick={() => setIsYearly(!isYearly)}
-          className="relative w-14 h-7 rounded-full bg-[var(--bg-elevated)] border border-[var(--border)] transition-colors"
+          className="relative w-16 h-8 rounded-full bg-[var(--bg-elevated)] border border-[var(--border)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
         >
-          <div className={`absolute top-0.5 left-0.5 w-6 h-6 rounded-full bg-[var(--accent)] transition-transform ${isYearly ? 'translate-x-7' : 'translate-x-0'}`} />
+          <div className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-[var(--accent)] transition-transform duration-300 shadow-md ${isYearly ? 'translate-x-8' : 'translate-x-0'}`} />
         </button>
-        <span className={`text-sm font-medium ${isYearly ? 'text-white' : 'text-[var(--text-secondary)]'}`}>
+        <span className={`text-sm font-medium transition-colors ${isYearly ? 'text-white' : 'text-[var(--text-secondary)]'}`}>
           Yearly
-          <span className="ml-2 text-xs text-[var(--accent)]">Save 20%</span>
+          <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 uppercase tracking-wide">Save 20%</span>
         </span>
       </div>
 
-      {/* Pricing Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-7xl mx-auto px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto px-4">
         <PricingCard
           name="Free"
           price="$0"
@@ -423,4 +434,3 @@ function PricingToggle() {
     </>
   );
 }
-
