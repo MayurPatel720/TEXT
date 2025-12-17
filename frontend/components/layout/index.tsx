@@ -114,8 +114,8 @@ export function Header() {
               <div className="absolute inset-0 bg-white/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <div className="flex flex-col">
-              <span className="font-bold text-lg leading-tight tracking-tight">Textile AI</span>
-              <span className="text-[10px] text-[var(--text-secondary)] font-medium tracking-wider uppercase">Pro Studio</span>
+              <span className="font-bold text-lg leading-tight tracking-tight">FabricDesigner.AI</span>
+              <span className="text-[10px] text-[var(--text-secondary)] font-medium tracking-wider uppercase">Studio</span>
             </div>
           </Link>
 
@@ -260,7 +260,7 @@ export function Header() {
                   </>
                 )}
                 <div className="text-center text-sm text-[var(--text-tertiary)] mt-4">
-                  © 2025 Textile AI
+                   © 2025 FabricDesigner.AI
                 </div>
               </div>
             </div>
@@ -282,10 +282,10 @@ export function Footer() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent)] to-purple-600 flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <span className="font-bold text-lg">Textile AI</span>
+              <span className="font-bold text-lg">FabricDesigner.AI</span>
             </Link>
             <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-6">
-              Empowering designers with next-generation AI tools. Create production-ready textile patterns in seconds, not hours.
+                 AI-powered fabric and textile design generation platform. Transform reference images into professional, print-ready patterns.
             </p>
             <div className="flex items-center gap-4">
               <SocialLink icon={<Twitter className="w-4 h-4" />} href="#" />
@@ -336,7 +336,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-[var(--border)] pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-[var(--text-tertiary)]">
-          <p>© 2025 Textile AI Inc. All rights reserved.</p>
+          <p>© 2025 FabricDesigner.AI. All rights reserved.</p>
           <div className="flex items-center gap-8">
             <Link href="/privacy" className="hover:text-[var(--text-secondary)] transition-colors">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-[var(--text-secondary)] transition-colors">Terms of Service</Link>

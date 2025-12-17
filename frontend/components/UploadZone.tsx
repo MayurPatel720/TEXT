@@ -11,14 +11,12 @@ export default function UploadZone({ onFileUpload }: UploadZoneProps) {
   const [error, setError] = useState<string | null>(null);
 
   const validateFile = (file: File): boolean => {
-    // Check file type
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
     if (!allowedTypes.includes(file.type)) {
       setError("Please upload a JPG or PNG image");
       return false;
     }
 
-    // Check file size (max 50MB)
     const maxSize = 50 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
       setError("File size must be less than 50MB");
@@ -63,7 +61,7 @@ export default function UploadZone({ onFileUpload }: UploadZoneProps) {
   }, [handleFile]);
 
   return (
-    <section className="panel panel-content" aria-labelledby="upload-heading">
+    <section className="card p-6" aria-labelledby="upload-heading">
       <div
         className={`upload-zone ${isDragging ? "dragging" : ""}`}
         onDrop={handleDrop}
@@ -78,19 +76,19 @@ export default function UploadZone({ onFileUpload }: UploadZoneProps) {
         <h3 id="upload-heading" className="text-xl font-semibold mb-2">
           Upload Fabric Image
         </h3>
-        <p className="text-[var(--color-text-secondary)] mb-4">
+        <p className="text-[var(--text-secondary)] mb-4">
           Drag and drop your image here, or click to browse
         </p>
         
-        <div className="flex items-center justify-center gap-4 text-sm text-[var(--color-text-secondary)]">
+        <div className="flex items-center justify-center gap-4 text-sm text-[var(--text-secondary)] mb-6">
           <div className="flex items-center gap-2">
-            <span className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center text-lg">
+            <span className="w-8 h-8 bg-[var(--accent-glow)] rounded flex items-center justify-center text-lg">
               📄
             </span>
             <span>JPG, PNG</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-8 h-8 bg-green-100 rounded flex items-center justify-center text-lg">
+            <span className="w-8 h-8 bg-[var(--accent-glow)] rounded flex items-center justify-center text-lg">
               📏
             </span>
             <span>Max 50MB</span>
@@ -114,16 +112,16 @@ export default function UploadZone({ onFileUpload }: UploadZoneProps) {
       </div>
 
       {error && (
-        <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md text-red-800 text-sm" role="alert">
+        <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm" role="alert">
           <strong>Error:</strong> {error}
         </div>
       )}
 
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-        <h4 className="font-semibold text-sm mb-2 text-blue-900">
+      <div className="mt-6 p-4 bg-[var(--accent-glow)] border border-[var(--accent)]/20 rounded-lg">
+        <h4 className="font-semibold text-sm mb-2">
           💡 Best Results Tips
         </h4>
-        <ul className="text-sm text-blue-800 space-y-1">
+        <ul className="text-sm text-[var(--text-secondary)] space-y-1">
           <li>• Use images 2000px or larger for best quality</li>
           <li>• Ensure good lighting and contrast</li>
           <li>• Clear subject with minimal background clutter</li>

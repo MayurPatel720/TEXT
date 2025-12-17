@@ -35,7 +35,7 @@ export default function ProgressIndicator({ stage, progress }: ProgressIndicator
   }
 
   return (
-    <div className="panel panel-content" role="status" aria-live="polite" aria-atomic="true">
+    <div className="card p-6" role="status" aria-live="polite" aria-atomic="true">
       <div className="flex items-center gap-4 mb-4">
         <div className="animate-pulse text-3xl">
           {stage === "uploading" && "📤"}
@@ -49,25 +49,25 @@ export default function ProgressIndicator({ stage, progress }: ProgressIndicator
           <h3 className="font-semibold text-lg mb-1">
             {stageLabels[stage]}
           </h3>
-          <p className="text-sm text-[var(--color-text-secondary)]">
+          <p className="text-sm text-[var(--text-secondary)]">
             {stageDescriptions[stage]}
           </p>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-semibold text-[var(--color-progress)]">
+          <div className="text-2xl font-semibold text-[var(--accent)]">
             {progress}%
           </div>
         </div>
       </div>
 
-      <div className="progress-bar" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+      <div className="w-full h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
         <div 
-          className="progress-fill" 
+          className="h-full bg-[var(--accent)] transition-all duration-300 rounded-full" 
           style={{ width: `${progress}%` }}
         />
       </div>
 
-      <div className="mt-4 flex items-center justify-between text-xs text-[var(--color-text-secondary)]">
+      <div className="mt-4 flex items-center justify-between text-xs text-[var(--text-secondary)]">
         <span>Processing...</span>
         <span>Please wait</span>
       </div>

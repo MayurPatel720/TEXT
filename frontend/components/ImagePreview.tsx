@@ -23,18 +23,17 @@ export default function ImagePreview({
   const displayImage = showComparison ? originalImage : (enhancedImage || originalImage);
 
   return (
-    <section className="panel" aria-labelledby="preview-heading">
-      <div className="panel-header flex items-center justify-between">
+    <section className="card h-full flex flex-col" aria-labelledby="preview-heading">
+      <div className="p-6 border-b border-[var(--border)] flex items-center justify-between">
         <h3 id="preview-heading" className="font-semibold">
           {showComparison ? "Original Image" : "Enhanced Image"}
         </h3>
         
         <div className="flex items-center gap-4">
-          {/* Zoom Controls */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setZoom(Math.max(50, zoom - 25))}
-              className="px-2 py-1 text-sm border border-[var(--color-border)] rounded hover:bg-[var(--color-hover)] transition-colors"
+              className="px-2 py-1 text-sm border border-[var(--border)] rounded hover:bg-[var(--bg-elevated)] transition-colors"
               aria-label="Zoom out"
             >
               -
@@ -42,14 +41,13 @@ export default function ImagePreview({
             <span className="text-sm font-medium w-12 text-center">{zoom}%</span>
             <button
               onClick={() => setZoom(Math.min(200, zoom + 25))}
-              className="px-2 py-1 text-sm border border-[var(--color-border)] rounded hover:bg-[var(--color-hover)] transition-colors"
+              className="px-2 py-1 text-sm border border-[var(--border)] rounded hover:bg-[var(--bg-elevated)] transition-colors"
               aria-label="Zoom in"
             >
               +
             </button>
           </div>
 
-          {/* Before/After Toggle */}
           {enhancedImage && (
             <button
               onClick={onToggleComparison}
@@ -62,7 +60,7 @@ export default function ImagePreview({
         </div>
       </div>
 
-      <div className="panel-content min-h-[400px] flex items-center justify-center bg-[var(--color-secondary-bg)]">
+      <div className="flex-1 p-6 min-h-[400px] flex items-center justify-center bg-[var(--bg-secondary)]">
         {displayImage ? (
           <div className="relative overflow-auto max-w-full max-h-[600px]">
             <img
@@ -72,13 +70,12 @@ export default function ImagePreview({
               style={{ transform: `scale(${zoom / 100})` }}
             />
             
-            {/* Watermark */}
-            <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-md text-xs text-[var(--color-text-secondary)]">
+            <div className="absolute bottom-4 right-4 bg-[var(--bg-elevated)]/90 backdrop-blur-sm px-3 py-2 rounded-md text-xs text-[var(--text-secondary)] border border-[var(--border)]">
               {showComparison ? "Before Enhancement" : "After Enhancement"}
             </div>
           </div>
         ) : (
-          <div className="text-center text-[var(--color-text-secondary)]">
+          <div className="text-center text-[var(--text-secondary)]">
             <div className="text-4xl mb-4">🖼️</div>
             <p>Your image will appear here</p>
           </div>
@@ -86,14 +83,14 @@ export default function ImagePreview({
       </div>
 
       {enhancedImage && !showComparison && (
-        <div className="panel-content border-t border-[var(--color-border)] bg-green-50">
+        <div className="p-4 border-t border-[var(--border)] bg-[var(--success-glow)]">
           <div className="flex items-start gap-3">
             <div className="text-2xl">✓</div>
             <div className="flex-1">
-              <h4 className="font-semibold text-sm mb-1 text-green-900">
+              <h4 className="font-semibold text-sm mb-1 text-[var(--success)]">
                 Enhancement Complete
               </h4>
-              <p className="text-sm text-green-800">
+              <p className="text-sm text-[var(--text-secondary)]">
                 Image optimized with improved sharpness, reduced noise, and balanced lighting. Ready for pattern generation.
               </p>
             </div>

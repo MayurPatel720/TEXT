@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
             <div className="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-lg">Textile AI</span>
+            <span className="font-bold text-lg">FabricDesigner.AI</span>
           </Link>
           <h1 className="text-2xl font-bold mb-2">Reset password</h1>
           <p className="text-[var(--text-secondary)]">Enter your email to receive a reset link</p>
