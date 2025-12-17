@@ -1,7 +1,17 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
+  "name": "fabricdesigner-ai",
+  "version": "1.0.0",
+  "description": "AI-powered fabric and textile design generation platform. Transform reference images into professional, print-ready textile patterns.",
+  "author": "FabricDesigner.AI",
+  "license": "MIT",
   "private": true,
+  "keywords": [
+    "textile-design",
+    "fabric-design",
+    "ai-design",
+    "pattern-generation",
+    "textile-ai"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -35,3 +45,4 @@
     "typescript": "^5"
   }
 }
+
