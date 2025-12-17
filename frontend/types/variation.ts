@@ -14,3 +14,10 @@ export type ProcessingStage =
   | "creating-variations"
   | "finalizing"
   | "complete";
+
+export interface Variation {
+  id: string;
+  label: string;
+  thumbnailUrl: string;
+  params: VariationParams;
+}

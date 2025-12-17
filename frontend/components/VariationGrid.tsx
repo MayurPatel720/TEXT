@@ -1,6 +1,6 @@
 "use client";
 
-import { Variation } from "@/app/page";
+import { Variation } from "@/types/variation";
 
 interface VariationGridProps {
   variations: Variation[];
