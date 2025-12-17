@@ -5,7 +5,7 @@ import Generation from "@/models/Generation";
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
@@ -19,7 +19,8 @@ export async function POST(
 
     await connectDB();
 
-    const generation = await Generation.findById(params.id);
+    const { id } = await params;
+    const generation = await Generation.findById(id);
     
     if (!generation) {
       return NextResponse.json(
