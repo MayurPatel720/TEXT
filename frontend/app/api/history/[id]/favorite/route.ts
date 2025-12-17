@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import connectDB from "@/lib/mongodb";
 import Generation from "@/models/Generation";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

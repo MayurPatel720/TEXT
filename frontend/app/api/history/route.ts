@@ -4,6 +4,8 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Generation from "@/models/Generation";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     const session = await getServerSession();

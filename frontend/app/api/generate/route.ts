@@ -4,6 +4,8 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Generation from "@/models/Generation";
 
+export const dynamic = 'force-dynamic';
+
 // Using Flux Kontext Fast model for textile design generation
 // Model: prunaai/flux-kontext-fast
 // Cost: ~$0.003 per image
