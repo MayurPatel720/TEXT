@@ -1,6 +1,6 @@
 "use client";
 
-import { ProcessingStage } from "@/app/page";
+import { ProcessingStage } from "@/types/variation";
 import { useState } from "react";
 
 interface ImagePreviewProps {
