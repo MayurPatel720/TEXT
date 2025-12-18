@@ -5,9 +5,16 @@ import { motion } from "framer-motion";
 import { Sparkles, Zap, Shield, Palette, Check, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Header, Footer } from "@/components/layout";
+import { useRouter } from "next/navigation";
+import { useTransition } from "@/context/TransitionContext";
+
 
 export default function HomePage() {
+  const router = useRouter();
+  const { triggerTransition } = useTransition();
+  
   return (
+
     <main className="min-h-screen bg-[var(--bg-primary)]">
       <Header />
 
@@ -96,11 +103,15 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.6 }}
             >
-              <Link href="/studio" className="btn btn-primary btn-lg group">
+              <button 
+                onClick={() => triggerTransition(() => router.push("/studio"))}
+                className="btn btn-primary btn-lg group"
+              >
                 <Sparkles className="w-5 h-5 transition-transform group-hover:rotate-12" />
                 Start Designing Free
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-              </Link>
+              </button>
+
               
               <Link href="#features" className="btn btn-secondary btn-lg">
                 See How It Works
@@ -288,6 +299,9 @@ function PricingCard({ name, price, priceUnit, description, features, cta, href,
   highlighted: boolean;
   badge?: string;
 }) {
+  const router = useRouter();
+  const { triggerTransition } = useTransition();
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -326,8 +340,14 @@ function PricingCard({ name, price, priceUnit, description, features, cta, href,
         ))}
       </ul>
       
-      <Link 
-        href={href} 
+      <button 
+        onClick={() => {
+          if (href.startsWith("mailto:")) {
+            window.location.href = href;
+          } else {
+            triggerTransition(() => router.push(href));
+          }
+        }}
         className={`btn w-full py-4 rounded-xl font-semibold text-center transition-all duration-300 ${
           highlighted 
             ? 'btn-primary' 
@@ -335,10 +355,11 @@ function PricingCard({ name, price, priceUnit, description, features, cta, href,
         }`}
       >
         {cta}
-      </Link>
+      </button>
     </motion.div>
   );
 }
+
 
 function PricingToggle() {
   const [isYearly, setIsYearly] = useState(false);

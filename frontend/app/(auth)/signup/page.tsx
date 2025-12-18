@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Sparkles, Github, Mail, AlertCircle, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
@@ -64,8 +65,8 @@ export default function SignupPage() {
       <div className="w-full max-w-md bg-[var(--bg-elevated)] border border-[var(--border)] rounded-2xl p-8 relative z-10 shadow-2xl">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center relative">
+              <Image src="/logo.png" alt="FabricDesigner.AI" width={32} height={32} className="object-contain" />
             </div>
             <span className="font-bold text-lg">FabricDesigner.AI</span>
           </Link>

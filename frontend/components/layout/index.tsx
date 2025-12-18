@@ -2,16 +2,25 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import TransitionLink from "@/components/TransitionLink";
+
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Menu, X, ChevronRight, Github, Twitter, Instagram, LogOut, Clock } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useTransition } from "@/context/TransitionContext";
+
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { triggerTransition } = useTransition();
+
   const { data: session, status } = useSession();
   const isStudio = pathname === "/studio";
 
@@ -43,15 +52,17 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             <div className="flex items-center gap-4">
-            <Link href="/">
-              <button className="p-2 hover:bg-[var(--bg-elevated)] rounded-full transition-colors group">
+            <button 
+              onClick={() => triggerTransition(() => router.push("/"))}
+              className="p-2 hover:bg-[var(--bg-elevated)] rounded-full transition-colors group"
+            >
               <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] rotate-180 group-hover:text-white" />
-              </button>
-            </Link>
+            </button>
+
             <div className="h-6 w-px bg-[var(--border)]" />
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center relative">
+              <Image src="/logo.png" alt="FabricDesigner.AI" width={32} height={32} className="object-contain" />
               </div>
               <span className="font-semibold text-lg">Design Studio</span>
             </div>
@@ -108,29 +119,32 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent)] to-purple-600 flex items-center justify-center shadow-lg shadow-[var(--accent-glow)] group-hover:scale-105 transition-transform">
-              <Sparkles className="w-5 h-5 text-white" />
-              <div className="absolute inset-0 bg-white/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity" />
+          <TransitionLink href="/" className="flex items-center gap-3 group">
+
+            <div className="relative w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Image src="/logo.png" alt="FabricDesigner.AI" width={40} height={40} className="object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-lg leading-tight tracking-tight">FabricDesigner.AI</span>
               <span className="text-[10px] text-[var(--text-secondary)] font-medium tracking-wider uppercase">Studio</span>
             </div>
-          </Link>
+          </TransitionLink>
+
+
 
           {/* Desktop Nav - Perfectly Centered */}
           <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8">
             {navLinks.map((link) => (
-              <Link
+              <TransitionLink
                 key={link.name}
                 href={link.href}
                 className="text-sm font-medium text-[var(--text-secondary)] hover:text-white transition-colors relative group"
               >
                 {link.name}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[var(--accent)] transition-all group-hover:w-full" />
-              </Link>
+              </TransitionLink>
             ))}
+
           </nav>
 
           {/* Actions */}
@@ -154,18 +168,28 @@ export function Header() {
                       <p className="text-sm font-medium">{session.user?.name}</p>
                       <p className="text-xs text-[var(--text-secondary)] mt-0.5">{session.user?.email}</p>
                     </div>
-                    <Link href="/studio" onClick={() => setProfileMenuOpen(false)}>
-                      <button className="w-full px-4 py-2 text-sm text-left hover:bg-[var(--bg-primary)] flex items-center gap-2">
-                        <Sparkles className="w-4 h-4" />
-                        Design Studio
-                      </button>
-                    </Link>
-                    <Link href="/history" onClick={() => setProfileMenuOpen(false)}>
-                      <button className="w-full px-4 py-2 text-sm text-left hover:bg-[var(--bg-primary)] flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        History
-                      </button>
-                    </Link>
+                    <button 
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        triggerTransition(() => router.push("/studio"));
+                      }}
+                      className="w-full px-4 py-2 text-sm text-left hover:bg-[var(--bg-primary)] flex items-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Design Studio
+                    </button>
+
+                    <button 
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        triggerTransition(() => router.push("/history"));
+                      }}
+                      className="w-full px-4 py-2 text-sm text-left hover:bg-[var(--bg-primary)] flex items-center gap-2"
+                    >
+                      <Clock className="w-4 h-4" />
+                      History
+                    </button>
+
                     <button onClick={handleSignOut} className="w-full px-4 py-2 text-sm text-left hover:bg-[var(--bg-primary)] flex items-center gap-2 text-red-400">
                       <LogOut className="w-4 h-4" />
                       Sign Out
@@ -175,16 +199,17 @@ export function Header() {
               </div>
             ) : (
               <>
-                <Link href="/login">
-                  <button className="text-sm font-medium text-[var(--text-secondary)] hover:text-white transition-colors">
-                    Sign In
-                  </button>
-                </Link>
-                <Link href="/studio">
-                  <button className="btn btn-primary px-4 py-2 text-sm">
-                    Get Started
-                  </button>
-                </Link>
+                <TransitionLink href="/login" className="text-sm font-medium text-[var(--text-secondary)] hover:text-white transition-colors">
+                  Sign In
+                </TransitionLink>
+
+                <button 
+                  onClick={() => triggerTransition(() => router.push("/studio"))}
+                  className="btn btn-primary px-4 py-2 text-sm"
+                >
+                  Get Started
+                </button>
+
               </>
             )}
           </div>
@@ -221,7 +246,7 @@ export function Header() {
 
               <nav className="flex flex-col gap-6 text-lg font-medium">
                 {navLinks.map((link) => (
-                  <Link
+                  <TransitionLink
                     key={link.name}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
@@ -229,36 +254,48 @@ export function Header() {
                   >
                     {link.name}
                     <ChevronRight className="w-4 h-4 text-[var(--text-tertiary)]" />
-                  </Link>
+                  </TransitionLink>
                 ))}
+
               </nav>
 
               <div className="mt-auto flex flex-col gap-4">
                 {session ? (
                   <>
-                    <Link href="/studio" onClick={() => setMobileMenuOpen(false)}>
-                      <button className="btn btn-primary w-full py-4 text-lg">
-                        Launch Studio
-                      </button>
-                    </Link>
+                    <button 
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        triggerTransition(() => router.push("/studio"));
+                      }}
+                      className="btn btn-primary w-full py-4 text-lg"
+                    >
+                      Launch Studio
+                    </button>
                     <button onClick={handleSignOut} className="btn btn-secondary w-full py-4 text-lg">
                       Sign Out
                     </button>
                   </>
                 ) : (
                   <>
-                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                      <button className="btn btn-secondary w-full py-4 text-lg">
-                        Sign In
-                      </button>
-                    </Link>
-                    <Link href="/studio" onClick={() => setMobileMenuOpen(false)}>
-                      <button className="btn btn-primary w-full py-4 text-lg">
-                        Get Started
-                      </button>
-                    </Link>
+                    <TransitionLink 
+                      href="/login" 
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="btn btn-secondary w-full py-4 text-lg text-center"
+                    >
+                      Sign In
+                    </TransitionLink>
+                    <button 
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        triggerTransition(() => router.push("/studio"));
+                      }}
+                      className="btn btn-primary w-full py-4 text-lg"
+                    >
+                      Get Started
+                    </button>
                   </>
                 )}
+
                 <div className="text-center text-sm text-[var(--text-tertiary)] mt-4">
                    © 2025 FabricDesigner.AI
                 </div>
@@ -278,12 +315,14 @@ export function Footer() {
         <div className="grid md:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--accent)] to-purple-600 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
+            <TransitionLink href="/" className="flex items-center gap-2 mb-6">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center relative">
+                <Image src="/logo.png" alt="FabricDesigner.AI" width={32} height={32} className="object-contain" />
               </div>
               <span className="font-bold text-lg">FabricDesigner.AI</span>
-            </Link>
+            </TransitionLink>
+
+
             <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-6">
                  AI-powered fabric and textile design generation platform. Transform reference images into professional, print-ready patterns.
             </p>
@@ -298,12 +337,13 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-6">Product</h4>
             <ul className="space-y-4 text-sm text-[var(--text-secondary)]">
-              <li><Link href="/#features" className="hover:text-[var(--accent)] transition-colors">Features</Link></li>
-              <li><Link href="/studio" className="hover:text-[var(--accent)] transition-colors">Design Studio</Link></li>
-              <li><Link href="/pricing" className="hover:text-[var(--accent)] transition-colors">Pricing</Link></li>
-              <li><Link href="/showcase" className="hover:text-[var(--accent)] transition-colors">Showcase</Link></li>
+              <li><TransitionLink href="/#features" className="hover:text-[var(--accent)] transition-colors">Features</TransitionLink></li>
+              <li><TransitionLink href="/studio" className="hover:text-[var(--accent)] transition-colors">Design Studio</TransitionLink></li>
+              <li><TransitionLink href="/pricing" className="hover:text-[var(--accent)] transition-colors">Pricing</TransitionLink></li>
+              <li><TransitionLink href="/showcase" className="hover:text-[var(--accent)] transition-colors">Showcase</TransitionLink></li>
               <li><Link href="/api" className="hover:text-[var(--accent)] transition-colors">API</Link></li>
             </ul>
+
           </div>
 
           <div>

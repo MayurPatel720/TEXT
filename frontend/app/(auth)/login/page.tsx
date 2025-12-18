@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Sparkles, Github, Mail, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useTransition } from "@/context/TransitionContext";
+
 
 export default function LoginPage() {
   const router = useRouter();
+  const { triggerTransition } = useTransition();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -28,7 +33,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid email or password");
       } else {
-        router.push("/");
+        triggerTransition(() => router.push("/"));
       }
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -49,8 +54,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-[var(--bg-elevated)] border border-[var(--border)] rounded-2xl p-8 relative z-10 shadow-2xl">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 rounded-lg bg-[var(--accent)] flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center relative">
+              <Image src="/logo.png" alt="FabricDesigner.AI" width={32} height={32} className="object-contain" />
             </div>
             <span className="font-bold text-lg">FabricDesigner.AI</span>
           </Link>
