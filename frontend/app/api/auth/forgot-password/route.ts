@@ -173,6 +173,3 @@ export async function POST(request: Request) {
     );
   }
 }
-
-// Export tokens map for use in reset-password route
-export { resetTokens };
