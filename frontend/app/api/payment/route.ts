@@ -1,39 +1,48 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import Razorpay from "razorpay";
+import crypto from "crypto";
 
 export const dynamic = 'force-dynamic';
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 
+// Initialize Razorpay
+const razorpay = new Razorpay({
+  key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
+  key_secret: process.env.RAZORPAY_KEY_SECRET || "",
+});
+
 // Razorpay payment configuration
 const RAZORPAY_PLANS = {
   pro_monthly: {
     name: "Pro Monthly",
-    price: 1999, // ₹19.99 = 1999 paise
+    price: 249900, // ₹2,499 in paise
     credits: 100,
     duration: "monthly",
   },
   pro_yearly: {
     name: "Pro Yearly",
-    price: 19190, // ₹191.90 = 19190 paise (20% discount)
-    credits: 1200,
+    price: 2499900, // ₹24,999 in paise
+    credits: 1200, // 100 * 12
     duration: "yearly",
   },
+  // Legacy/Extra Credit Packs (Optional)
   credits_10: {
     name: "10 Credits",
-    price: 299, // ₹2.99
+    price: 29900, // ₹299
     credits: 10,
     duration: "one-time",
   },
   credits_50: {
     name: "50 Credits",
-    price: 999, // ₹9.99
+    price: 99900, // ₹999
     credits: 50,
     duration: "one-time",
   },
   credits_100: {
     name: "100 Credits",
-    price: 1799, // ₹17.99
+    price: 179900, // ₹1,799
     credits: 100,
     duration: "one-time",
   },
@@ -52,8 +61,23 @@ export async function POST(request: Request) {
 
     const { planId, paymentId, orderId, signature } = await request.json();
 
-    // Verify Razorpay signature (in production, verify the signature)
-    // For now, we'll skip verification for demo purposes
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+         return NextResponse.json({ error: "Server Configuration Error" }, { status: 500 });
+    }
+
+    // Verify Razorpay signature
+    const text = orderId + "|" + paymentId;
+    const generated_signature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(text)
+      .digest("hex");
+
+    if (generated_signature !== signature) {
+      return NextResponse.json(
+        { error: "Invalid payment signature" },
+        { status: 400 }
+      );
+    }
     
     await connectDB();
 
@@ -80,7 +104,7 @@ export async function POST(request: Request) {
 
     // Update subscription if it's a subscription plan
     if (plan.duration !== "one-time") {
-      user.plan = plan.duration === "monthly" ? "pro" : "pro";
+      user.plan = "pro"; // Currently only 'pro' logic
       user.subscriptionStatus = "active";
       user.lastPaymentDate = new Date();
       
@@ -92,6 +116,11 @@ export async function POST(request: Request) {
         nextBilling.setFullYear(nextBilling.getFullYear() + 1);
       }
       user.nextBillingDate = nextBilling;
+      
+      // Store payment info
+      // user.payments.push({ id: paymentId, amount: plan.price / 100, date: new Date() }); // If payment history array existed
+      user.lastPaymentDate = new Date();
+      user.customerId = user.customerId || ""; // Could store Razorpay customer ID here if needed
       
       await user.save();
     }
@@ -137,20 +166,28 @@ export async function GET(request: Request) {
       );
     }
 
-    // In production, create a Razorpay order here
-    // For demo, return mock order
-    const mockOrder = {
-      id: `order_${Date.now()}`,
+    const options = {
       amount: plan.price,
       currency: "INR",
-      planName: plan.name,
-      credits: plan.credits,
+      receipt: `order_rcptid_${Date.now()}`,
+      notes: {
+        planId: planId,
+        userEmail: session.user.email
+      }
     };
+
+    const order = await razorpay.orders.create(options);
 
     return NextResponse.json({
       success: true,
-      order: mockOrder,
-      razorpayKey: process.env.NEXT_PUBLIC_RAZORPAY_KEY || "demo_key",
+      order: {
+        id: order.id,
+        amount: order.amount,
+        currency: order.currency,
+        planName: plan.name,
+        credits: plan.credits,
+      },
+      razorpayKey: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
     });
   } catch (error) {
     console.error("Order creation error:", error);

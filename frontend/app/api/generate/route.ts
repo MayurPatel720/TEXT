@@ -24,7 +24,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { image, prompt, style_strength, num_variations } = body;
+    const { 
+      image, 
+      prompt, 
+      style_strength, 
+      structure_strength,
+      num_variations,
+      seed,
+      aspect_ratio,
+      output_format,
+      quality,
+      guidance 
+    } = body;
 
     // Validate inputs
     if (!image || !prompt) {
@@ -67,7 +78,7 @@ export async function POST(request: NextRequest) {
       const mockVariations = Array.from({ length: num_variations || 4 }, (_, i) => ({
         id: `demo-${i}-${Date.now()}`,
         url: image,
-        seed: Math.floor(Math.random() * 1000000)
+        seed: seed ? seed + i : Math.floor(Math.random() * 1000000)
       }));
 
       // Save mock generation to database
@@ -111,9 +122,11 @@ export async function POST(request: NextRequest) {
             version: "prunaai/flux-kontext-fast",
             input: {
               prompt: prompt,
-              guidance: style_strength ? style_strength * 5 : 2.5, // Convert 0-1 to 0-5
+              guidance: guidance || (style_strength ? style_strength * 5 : 2.5),
               speed_mode: "Real Time",
-              img_cond_path: image
+              img_cond_path: image,
+              ...(seed && { seed: seed + i }), // Different seed per variation
+              ...(aspect_ratio && { aspect_ratio: aspect_ratio }),
             }
           }),
         });

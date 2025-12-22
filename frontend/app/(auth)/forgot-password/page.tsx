@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Sparkles, AlertCircle, CheckCircle } from "lucide-react";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -28,13 +29,21 @@ export default function ForgotPasswordPage() {
 
       if (!response.ok) {
         setError(data.error || "Failed to send reset email");
+        toast.error(data.error || "Failed to send reset email");
         return;
       }
 
       setSuccess(true);
-      setResetLink(data.resetLink); // For demo purposes
+      setResetLink(data.resetLink); // For dev mode
+      toast.success("Reset link sent! Check your email.");
+      
+      // Log link to console for easy access
+      if (data.resetLink) {
+        console.log('\n📧 RESET LINK (dev mode):', data.resetLink);
+      }
     } catch (err) {
       setError("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -65,15 +74,26 @@ export default function ForgotPasswordPage() {
         )}
 
         {success && (
-          <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm">
+          <div className="mb-4 p-4 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm">
             <div className="flex items-center gap-2 mb-2">
-              <CheckCircle className="w-4 h-4" />
-              Reset link sent!
+              <CheckCircle className="w-5 h-5" />
+              <span className="font-medium">Check your email!</span>
             </div>
+            <p className="text-green-400/70 text-xs mb-3">
+              If an account exists with this email, you will receive a password reset link shortly.
+            </p>
             {resetLink && (
-              <div className="text-xs mt-2 p-2 bg-[var(--bg-primary)] rounded border border-green-500/20">
-                <p className="mb-1 text-[var(--text-secondary)]">Demo - Copy this link:</p>
-                <code className="text-green-300 break-all">{resetLink}</code>
+              <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <p className="text-yellow-400 text-xs mb-2 font-medium">
+                  ⚠️ Development Mode - Email not configured
+                </p>
+                <p className="text-yellow-400/70 text-xs mb-2">
+                  Add EMAIL_USER and EMAIL_PASS to your .env.local to send real emails.
+                </p>
+                <div className="mt-2 p-2 bg-[var(--bg-primary)] rounded border border-yellow-500/10">
+                  <p className="text-[var(--text-tertiary)] text-xs mb-1">Reset Link:</p>
+                  <code className="text-yellow-300 text-xs break-all block">{resetLink}</code>
+                </div>
               </div>
             )}
           </div>

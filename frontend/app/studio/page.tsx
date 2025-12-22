@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   Upload, 
   Sparkles, 
-  ArrowLeft, 
   Download, 
   RefreshCw,
   Check,
@@ -13,11 +12,17 @@ import {
   Loader2,
   Image as ImageIcon,
   Wand2,
-  ChevronDown
+  ChevronDown,
+  ChevronUp,
+  Settings2,
+  Sliders,
+  Hash,
+  Zap,
+  Plus,
+  HelpCircle,
+  Info
 } from "lucide-react";
-import Link from "next/link";
 import Image from "next/image";
-
 import { Header } from "@/components/layout";
 
 interface Variation {
@@ -26,46 +31,150 @@ interface Variation {
   seed: number;
 }
 
+interface ReferenceImage {
+  id: string;
+  url: string;
+  file: File;
+}
+
 type GenerationStatus = "idle" | "uploading" | "generating" | "complete" | "error";
 
+// Custom Slider Component with proper drag support
+const Slider = ({ 
+  value, 
+  onChange, 
+  min = 0, 
+  max = 1, 
+  step = 0.01,
+  label,
+  displayValue,
+  helpText
+}: {
+  value: number;
+  onChange: (value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  label: string;
+  displayValue: string;
+  helpText?: string;
+}) => {
+  const percentage = ((value - min) / (max - min)) * 100;
+  
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-white/60">{label}</span>
+          {helpText && (
+            <div className="group relative">
+              <HelpCircle className="w-3 h-3 text-white/30 cursor-help" />
+              <div className="absolute left-0 bottom-full mb-2 w-48 p-2 rounded-lg bg-[#222] border border-white/10 text-xs text-white/70 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+                {helpText}
+              </div>
+            </div>
+          )}
+        </div>
+        <span className="text-xs text-[var(--accent)] font-medium tabular-nums">{displayValue}</span>
+      </div>
+      <div className="relative h-6 flex items-center">
+        <div className="absolute inset-x-0 h-2 bg-white/10 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent)]/70 rounded-full transition-all duration-75"
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(parseFloat(e.target.value))}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          style={{ WebkitAppearance: 'none' }}
+        />
+        <div 
+          className="absolute w-4 h-4 bg-white rounded-full shadow-lg shadow-black/30 border-2 border-[var(--accent)] pointer-events-none transition-all duration-75"
+          style={{ left: `calc(${percentage}% - 8px)` }}
+        />
+      </div>
+    </div>
+  );
+};
+
+// Tooltip component for info
+const InfoTooltip = ({ text }: { text: string }) => (
+  <div className="group relative inline-flex">
+    <Info className="w-3.5 h-3.5 text-white/30 cursor-help" />
+    <div className="absolute left-0 bottom-full mb-2 w-52 p-2.5 rounded-lg bg-[#1a1a1a] border border-white/10 text-xs text-white/70 leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none shadow-xl">
+      {text}
+    </div>
+  </div>
+);
+
 export default function StudioPage() {
-  const [referenceImage, setReferenceImage] = useState<string | null>(null);
-  const [referenceFile, setReferenceFile] = useState<File | null>(null);
+  // Core state
+  const [referenceImages, setReferenceImages] = useState<ReferenceImage[]>([]);
+  const [selectedRefImage, setSelectedRefImage] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
-  const [styleStrength, setStyleStrength] = useState(0.7);
-  const [structureStrength, setStructureStrength] = useState(0.5);
-  const [numVariations, setNumVariations] = useState(4);
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [progress, setProgress] = useState(0);
   const [variations, setVariations] = useState<Variation[]>([]);
+  const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  
+
+  // Settings
+  const [styleStrength, setStyleStrength] = useState(0.7);
+  const [structureStrength, setStructureStrength] = useState(0.5);
+  const [numVariations, setNumVariations] = useState(4);
+
+  // Advanced Settings
+  const [seed, setSeed] = useState<string>("");
+  const [aspectRatio, setAspectRatio] = useState("1:1");
+  const [outputFormat, setOutputFormat] = useState("png");
+  const [quality, setQuality] = useState(80);
+  const [guidance, setGuidance] = useState(2.5);
+
+  // Collapsible sections
+  const [showImageGuidance, setShowImageGuidance] = useState(true);
+  const [showOutputSettings, setShowOutputSettings] = useState(true);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Handle file drop/select
-  const handleFile = useCallback((file: File) => {
-    if (!file.type.startsWith("image/")) {
-      setError("Please upload an image file (JPG, PNG)");
-      return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setReferenceImage(e.target?.result as string);
-      setReferenceFile(file);
-      setError(null);
-    };
-    reader.readAsDataURL(file);
+  // Handle file drop/select - now supports multiple files
+  const handleFiles = useCallback((files: FileList) => {
+    Array.from(files).forEach(file => {
+      if (!file.type.startsWith("image/")) {
+        setError("Please upload image files only (JPG, PNG)");
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const newImage: ReferenceImage = {
+          id: `ref-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          url: e.target?.result as string,
+          file: file
+        };
+        setReferenceImages(prev => [...prev, newImage]);
+        setSelectedRefImage(prev => prev || newImage.id);
+        setError(null);
+      };
+      reader.readAsDataURL(file);
+    });
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
-  }, [handleFile]);
+    if (e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
+    }
+  }, [handleFiles]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -76,9 +185,23 @@ export default function StudioPage() {
     setIsDragging(false);
   }, []);
 
+  // Remove a reference image
+  const removeRefImage = useCallback((id: string) => {
+    setReferenceImages(prev => prev.filter(img => img.id !== id));
+    if (selectedRefImage === id) {
+      setSelectedRefImage(referenceImages.find(img => img.id !== id)?.id || null);
+    }
+  }, [selectedRefImage, referenceImages]);
+
+  // Get the currently selected reference image URL
+  const getCurrentRefImageUrl = useCallback(() => {
+    return referenceImages.find(img => img.id === selectedRefImage)?.url || null;
+  }, [referenceImages, selectedRefImage]);
+
   // Generate variations
   const handleGenerate = useCallback(async () => {
-    if (!referenceImage || !prompt.trim()) {
+    const refImageUrl = getCurrentRefImageUrl();
+    if (!refImageUrl || !prompt.trim()) {
       setError("Please upload an image and enter a prompt");
       return;
     }
@@ -88,9 +211,9 @@ export default function StudioPage() {
     setError(null);
     setVariations([]);
     setSelectedIds([]);
+    setSelectedVariation(null);
 
     try {
-      // Simulate progress for demo
       const progressInterval = setInterval(() => {
         setProgress(prev => {
           if (prev >= 90) {
@@ -101,16 +224,20 @@ export default function StudioPage() {
         });
       }, 500);
 
-      // Call backend API
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          image: referenceImage,
+          image: refImageUrl,
           prompt: prompt,
           style_strength: styleStrength,
           structure_strength: structureStrength,
-          num_variations: numVariations
+          num_variations: numVariations,
+          seed: seed ? parseInt(seed) : undefined,
+          aspect_ratio: aspectRatio,
+          output_format: outputFormat,
+          quality: quality,
+          guidance: guidance
         })
       });
 
@@ -125,32 +252,16 @@ export default function StudioPage() {
       
       setProgress(100);
       setVariations(data.variations || []);
+      if (data.variations?.length > 0) {
+        setSelectedVariation(data.variations[0]);
+      }
       setStatus("complete");
       
     } catch (err: any) {
-      // For demo without backend - create mock variations
       setError(err.message || "Something went wrong");
-      // await simulateGeneration();
+      setStatus("error");
     }
-  }, [referenceImage, prompt, styleStrength, structureStrength, numVariations]);
-
-  // Simulate generation for demo
-  const simulateGeneration = async () => {
-    for (let i = 0; i <= 100; i += 10) {
-      await new Promise(r => setTimeout(r, 300));
-      setProgress(i);
-    }
-    
-    // Create mock variations using the reference image
-    const mockVariations: Variation[] = Array.from({ length: numVariations }, (_, i) => ({
-      id: `var-${i}`,
-      url: referenceImage!,
-      seed: Math.floor(Math.random() * 1000000)
-    }));
-    
-    setVariations(mockVariations);
-    setStatus("complete");
-  };
+  }, [getCurrentRefImageUrl, prompt, styleStrength, structureStrength, numVariations, seed, aspectRatio, outputFormat, quality, guidance]);
 
   // Toggle selection
   const toggleSelection = useCallback((id: string) => {
@@ -161,326 +272,506 @@ export default function StudioPage() {
     );
   }, []);
 
+  // Select variation for large preview
+  const selectForPreview = useCallback((variation: Variation) => {
+    setSelectedVariation(variation);
+  }, []);
+
   // Download selected
   const handleDownload = useCallback(() => {
-    alert(`Downloading ${selectedIds.length} design(s)...\n\nNote: Connect to the Replicate API to get real HD downloads.`);
+    alert(`Downloading ${selectedIds.length} design(s)...`);
   }, [selectedIds]);
 
   // Reset
   const handleReset = useCallback(() => {
-    setReferenceImage(null);
-    setReferenceFile(null);
+    setReferenceImages([]);
+    setSelectedRefImage(null);
     setPrompt("");
     setVariations([]);
     setSelectedIds([]);
+    setSelectedVariation(null);
     setStatus("idle");
     setProgress(0);
     setError(null);
   }, []);
 
+  // Use selected image as new reference
+  const useAsReference = useCallback(() => {
+    if (selectedVariation) {
+      const newImage: ReferenceImage = {
+        id: `ref-${Date.now()}`,
+        url: selectedVariation.url,
+        file: new File([], "generated.png")
+      };
+      setReferenceImages(prev => [...prev, newImage]);
+      setSelectedRefImage(newImage.id);
+      setVariations([]);
+      setSelectedVariation(null);
+      setStatus("idle");
+    }
+  }, [selectedVariation]);
+
+  // Collapsible section component
+  const CollapsibleSection = ({ 
+    title, 
+    icon: Icon, 
+    isOpen, 
+    onToggle, 
+    children 
+  }: { 
+    title: string; 
+    icon: React.ElementType; 
+    isOpen: boolean; 
+    onToggle: () => void; 
+    children: React.ReactNode;
+  }) => (
+    <div className="border-b border-white/5">
+      <button
+        onClick={onToggle}
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+      >
+        <div className="flex items-center gap-2 text-sm font-medium text-white/90">
+          <Icon className="w-4 h-4 text-[var(--accent)]" />
+          {title}
+        </div>
+        {isOpen ? <ChevronUp className="w-4 h-4 text-white/50" /> : <ChevronDown className="w-4 h-4 text-white/50" />}
+      </button>
+      {isOpen && (
+        <div className="px-4 pb-4 space-y-4">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+
+  const currentRefImage = getCurrentRefImageUrl();
+
   return (
-    <main className="min-h-screen bg-[var(--bg-primary)]">
-      {/* Header */}
+    <main className="min-h-screen bg-[#0a0a0a]">
       <Header />
 
-      <div className="pt-24 pb-12 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-[1fr_400px] gap-8">
-            {/* Main Content */}
-            <div className="space-y-6">
-              {/* Upload Zone / Preview */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="card overflow-hidden"
-              >
-                <div className="p-6 border-b border-[var(--border)]">
-                  <h2 className="font-semibold flex items-center gap-2">
-                    <ImageIcon className="w-5 h-5 text-[var(--accent)]" />
-                    Reference Image
-                  </h2>
-                </div>
-                
-                <div className="p-6">
-                  {!referenceImage ? (
-                    <div
-                      className={`upload-zone ${isDragging ? 'dragging' : ''}`}
-                      onDrop={handleDrop}
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
-                      />
-                      <Upload className="w-12 h-12 text-[var(--text-tertiary)] mx-auto mb-4" />
-                      <p className="text-lg font-medium mb-2">Drop your fabric image here</p>
-                      <p className="text-[var(--text-secondary)] text-sm">
-                        or click to browse • JPG, PNG up to 10MB
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="relative aspect-video rounded-xl overflow-hidden bg-[var(--bg-secondary)]">
-                      <Image
-                        src={referenceImage}
-                        alt="Reference"
-                        fill
-                        className="object-contain"
-                      />
-                      <button
-                        onClick={handleReset}
-                        className="absolute top-4 right-4 btn btn-icon bg-black/50 hover:bg-black/70"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-
-              {/* Prompt Input */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="card"
-              >
-                <div className="p-6 border-b border-[var(--border)]">
-                  <h2 className="font-semibold flex items-center gap-2">
-                    <Wand2 className="w-5 h-5 text-[var(--accent)]" />
-                    Describe Your Design
-                  </h2>
-                </div>
-                
-                <div className="p-6">
-                  <textarea
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="E.g., Elegant floral textile pattern, seamless tile design, vibrant colors, professional print quality, intricate details..."
-                    className="input textarea"
-                    rows={4}
-                  />
-                  
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {["Seamless pattern", "Floral design", "Geometric", "Traditional motif", "Modern abstract"].map(tag => (
-                      <button
-                        key={tag}
-                        onClick={() => setPrompt(prev => prev ? `${prev}, ${tag.toLowerCase()}` : tag.toLowerCase())}
-                        className="badge hover:bg-[var(--accent-glow)] hover:text-[var(--accent)] transition-colors cursor-pointer"
-                      >
-                        + {tag}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Generated Variations */}
-              <AnimatePresence>
-                {variations.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="card"
+      <div className="pt-16 h-screen flex">
+        {/* Left Sidebar */}
+        <aside className="w-72 flex-shrink-0 border-r border-white/10 bg-[#111111] flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
+            {/* Prompt Section */}
+            <div className="p-4 border-b border-white/5">
+              <label className="flex items-center gap-2 text-sm font-medium mb-3 text-white/90">
+                <Wand2 className="w-4 h-4 text-[var(--accent)]" />
+                Prompt
+              </label>
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Describe your textile design..."
+                className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-3 text-sm text-white placeholder-white/30 resize-none focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                rows={3}
+              />
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {["Seamless", "Floral", "Geometric", "Abstract"].map(tag => (
+                  <button
+                    key={tag}
+                    onClick={() => setPrompt(prev => prev ? `${prev}, ${tag.toLowerCase()}` : tag.toLowerCase())}
+                    className="text-xs px-2.5 py-1.5 rounded-lg bg-[#1a1a1a] text-white/60 hover:bg-[var(--accent)]/20 hover:text-[var(--accent)] border border-white/5 hover:border-[var(--accent)]/30 transition-all"
                   >
-                    <div className="p-6 border-b border-[var(--border)] flex items-center justify-between">
-                      <h2 className="font-semibold">Generated Designs</h2>
-                      <span className="text-sm text-[var(--text-secondary)]">
-                        {selectedIds.length} selected
-                      </span>
-                    </div>
-                    
-                    <div className="p-6">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {variations.map((variation, i) => (
-                          <motion.div
-                            key={variation.id}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: i * 0.1 }}
-                            onClick={() => toggleSelection(variation.id)}
-                            className={`variation-card ${selectedIds.includes(variation.id) ? 'selected' : ''}`}
-                          >
-                            <Image
-                              src={variation.url}
-                              alt={`Variation ${i + 1}`}
-                              fill
-                              className="object-cover"
-                            />
-                            <div className="check">
-                              <Check className="w-4 h-4 text-white" />
-                            </div>
-                            <div className="absolute bottom-2 left-2 badge text-xs">
-                              #{variation.seed}
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                      
-                      {/* Actions */}
-                      <div className="mt-6 flex items-center gap-4">
-                        <button
-                          onClick={handleDownload}
-                          disabled={selectedIds.length === 0}
-                          className="btn btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <Download className="w-5 h-5" />
-                          Download Selected ({selectedIds.length})
-                        </button>
-                        
-                        <button
-                          onClick={handleGenerate}
-                          className="btn btn-secondary"
-                        >
-                          <RefreshCw className="w-5 h-5" />
-                          Regenerate
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    + {tag}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Sidebar Controls */}
-            <div className="space-y-6">
-              {/* Generation Settings */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="card lg:sticky lg:top-24"
-              >
-                <div className="p-6 border-b border-[var(--border)]">
-                  <h2 className="font-semibold">Settings</h2>
-                </div>
-                
-                <div className="p-6 space-y-6">
-                  {/* Style Strength */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="label mb-0">Style Strength</label>
-                      <span className="text-sm text-[var(--accent)]">{Math.round(styleStrength * 100)}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.05"
-                      value={styleStrength}
-                      onChange={(e) => setStyleStrength(parseFloat(e.target.value))}
-                      className="slider"
-                    />
-                    <p className="text-xs text-[var(--text-tertiary)] mt-1">
-                      How much to match the reference style
-                    </p>
-                  </div>
-                  
-                  {/* Structure Strength */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="label mb-0">Structure Strength</label>
-                      <span className="text-sm text-[var(--accent)]">{Math.round(structureStrength * 100)}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.05"
-                      value={structureStrength}
-                      onChange={(e) => setStructureStrength(parseFloat(e.target.value))}
-                      className="slider"
-                    />
-                    <p className="text-xs text-[var(--text-tertiary)] mt-1">
-                      How much to preserve the structure
-                    </p>
-                  </div>
-                  
-                  {/* Number of Variations */}
-                  <div>
-                    <label className="label">Variations</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[2, 4, 6].map(num => (
-                        <button
-                          key={num}
-                          onClick={() => setNumVariations(num)}
-                          className={`btn ${numVariations === num ? 'btn-primary' : 'btn-secondary'} py-2`}
-                        >
-                          {num}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="divider" />
-                  
-                  {/* Generate Button */}
-                  <button
-                    onClick={handleGenerate}
-                    disabled={!referenceImage || !prompt.trim() || status === "generating"}
-                    className="btn btn-primary btn-lg w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            {/* Image Guidance */}
+            <CollapsibleSection
+              title="Image Guidance"
+              icon={ImageIcon}
+              isOpen={showImageGuidance}
+              onToggle={() => setShowImageGuidance(!showImageGuidance)}
+            >
+              {/* Reference Images Grid */}
+              <div className="grid grid-cols-3 gap-2">
+                {referenceImages.map((img) => (
+                  <div
+                    key={img.id}
+                    className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all group ${
+                      selectedRefImage === img.id 
+                        ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/30' 
+                        : 'border-transparent hover:border-white/20'
+                    }`}
+                    onClick={() => setSelectedRefImage(img.id)}
                   >
-                    {status === "generating" ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Generating... {Math.round(progress)}%
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-5 h-5" />
-                        Generate Designs
-                      </>
+                    <Image
+                      src={img.url}
+                      alt="Reference"
+                      fill
+                      className="object-cover"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeRefImage(img.id);
+                      }}
+                      className="absolute top-1 right-1 p-1 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                    {selectedRefImage === img.id && (
+                      <div className="absolute inset-0 bg-[var(--accent)]/10 flex items-center justify-center">
+                        <Check className="w-5 h-5 text-[var(--accent)]" />
+                      </div>
                     )}
-                  </button>
-                  
-                  {/* Progress bar */}
-                  {status === "generating" && (
-                    <div className="w-full h-2 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-[var(--accent)]"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${progress}%` }}
-                        transition={{ duration: 0.3 }}
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Error */}
-                  {error && (
-                    <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                      {error}
-                    </div>
-                  )}
-                  
-                  {/* Credits info */}
-                  <p className="text-xs text-[var(--text-tertiary)] text-center">
-                    Each generation uses 1 credit
-                  </p>
+                  </div>
+                ))}
+                
+                {/* Add More Button */}
+                <div
+                  className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${
+                    isDragging ? 'border-[var(--accent)] bg-[var(--accent)]/10' : 'border-white/20 hover:border-[var(--accent)] hover:bg-white/5'
+                  }`}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => e.target.files && handleFiles(e.target.files)}
+                  />
+                  <Plus className="w-5 h-5 text-white/40" />
                 </div>
-              </motion.div>
-              
-              {/* Tips Card */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-                className="card p-6"
-              >
-                <h3 className="font-semibold mb-3">💡 Tips</h3>
-                <ul className="space-y-2 text-sm text-[var(--text-secondary)]">
-                  <li>• Use high-resolution reference images</li>
-                  <li>• Be specific in your prompt</li>
-                  <li>• Mention "seamless" for tileable patterns</li>
-                  <li>• Try different style strengths</li>
-                </ul>
-              </motion.div>
+              </div>
+
+              {referenceImages.length === 0 && (
+                <p className="text-xs text-white/40 text-center mt-2">
+                  Drop images or click + to upload
+                </p>
+              )}
+
+              {/* Style Strength Slider */}
+              <Slider
+                value={styleStrength}
+                onChange={setStyleStrength}
+                min={0}
+                max={1}
+                step={0.05}
+                label="Style Strength"
+                displayValue={`${Math.round(styleStrength * 100)}%`}
+                helpText="Controls how much the AI follows the artistic style. Higher = more stylized output."
+              />
+
+              {/* Structure Strength Slider */}
+              <Slider
+                value={structureStrength}
+                onChange={setStructureStrength}
+                min={0}
+                max={1}
+                step={0.05}
+                label="Structure Strength"
+                displayValue={`${Math.round(structureStrength * 100)}%`}
+                helpText="Controls how closely the output follows the original composition and layout."
+              />
+            </CollapsibleSection>
+
+            {/* Output Settings */}
+            <CollapsibleSection
+              title="Output Settings"
+              icon={Sliders}
+              isOpen={showOutputSettings}
+              onToggle={() => setShowOutputSettings(!showOutputSettings)}
+            >
+              {/* Number of Images */}
+              <div>
+                <span className="text-xs text-white/60 block mb-2">Number of Images</span>
+                <div className="flex gap-2">
+                  {[1, 2, 4, 6].map(num => (
+                    <button
+                      key={num}
+                      onClick={() => setNumVariations(num)}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                        numVariations === num 
+                          ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20' 
+                          : 'bg-[#1a1a1a] text-white/60 hover:bg-white/10 border border-white/5'
+                      }`}
+                    >
+                      {num}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Aspect Ratio */}
+              <div>
+                <span className="text-xs text-white/60 block mb-2">Aspect Ratio</span>
+                <div className="grid grid-cols-4 gap-2">
+                  {["1:1", "16:9", "4:3", "3:2"].map(ratio => (
+                    <button
+                      key={ratio}
+                      onClick={() => setAspectRatio(ratio)}
+                      className={`py-2 rounded-xl text-xs font-medium transition-all ${
+                        aspectRatio === ratio 
+                          ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20' 
+                          : 'bg-[#1a1a1a] text-white/60 hover:bg-white/10 border border-white/5'
+                      }`}
+                    >
+                      {ratio}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Output Format */}
+              <div>
+                <span className="text-xs text-white/60 block mb-2">Format</span>
+                <div className="flex gap-2">
+                  {[
+                    { value: "png", label: "PNG", desc: "Lossless" },
+                    { value: "jpg", label: "JPG", desc: "Smaller" },
+                    { value: "webp", label: "WEBP", desc: "Modern" }
+                  ].map(format => (
+                    <button
+                      key={format.value}
+                      onClick={() => setOutputFormat(format.value)}
+                      className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${
+                        outputFormat === format.value 
+                          ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20' 
+                          : 'bg-[#1a1a1a] text-white/60 hover:bg-white/10 border border-white/5'
+                      }`}
+                    >
+                      {format.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </CollapsibleSection>
+
+            {/* Advanced Settings */}
+            <CollapsibleSection
+              title="Advanced"
+              icon={Settings2}
+              isOpen={showAdvanced}
+              onToggle={() => setShowAdvanced(!showAdvanced)}
+            >
+              {/* Info banner */}
+              <div className="p-3 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-xs text-white/70 leading-relaxed">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-[var(--accent)] flex-shrink-0 mt-0.5" />
+                  <span>Fine-tune generation parameters. Hover over <HelpCircle className="w-3 h-3 inline text-white/40" /> icons for explanations.</span>
+                </div>
+              </div>
+
+              {/* Seed */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Hash className="w-3.5 h-3.5 text-white/40" />
+                  <span className="text-xs text-white/60">Seed</span>
+                  <InfoTooltip text="A seed number ensures reproducible results. Using the same seed with the same settings will generate the same image. Leave empty for random variations each time." />
+                </div>
+                <input
+                  type="number"
+                  value={seed}
+                  onChange={(e) => setSeed(e.target.value)}
+                  placeholder="Leave empty for random"
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                />
+              </div>
+
+              {/* Guidance Scale Slider */}
+              <Slider
+                value={guidance}
+                onChange={setGuidance}
+                min={1}
+                max={5}
+                step={0.1}
+                label="Guidance Scale"
+                displayValue={guidance.toFixed(1)}
+                helpText="How strictly the AI follows your prompt. Higher values = more literal interpretation, lower = more creative freedom."
+              />
+
+              {/* Quality Slider */}
+              <Slider
+                value={quality}
+                onChange={setQuality}
+                min={50}
+                max={100}
+                step={5}
+                label="Output Quality"
+                displayValue={`${quality}%`}
+                helpText="Image compression quality. Higher = better quality but larger file size. 80-90% is usually ideal."
+              />
+            </CollapsibleSection>
+          </div>
+
+          {/* Bottom Fixed Section */}
+          <div className="p-4 border-t border-white/10 bg-[#111111]">
+            <button
+              onClick={handleGenerate}
+              disabled={referenceImages.length === 0 || !prompt.trim() || status === "generating"}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[#0052cc] text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[var(--accent)]/20"
+            >
+              {status === "generating" ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Generating... {Math.round(progress)}%
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" />
+                  Create Design
+                </>
+              )}
+            </button>
+
+            {/* Progress bar */}
+            {status === "generating" && (
+              <div className="mt-3 w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-[var(--accent)] to-[#0052cc]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+            )}
+
+            {/* Error */}
+            {error && (
+              <div className="mt-3 p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+                {error}
+              </div>
+            )}
+
+            {/* Credits */}
+            <p className="text-xs text-white/40 text-center mt-3">
+              <Zap className="w-3 h-3 inline mr-1" />
+              1 credit per image • {numVariations} credits total
+            </p>
+          </div>
+        </aside>
+
+        {/* Right Main Panel */}
+        <main className="flex-1 overflow-y-auto p-8 bg-[#0a0a0a]">
+          {/* Large Preview */}
+          <div className="mb-8">
+            <div className="aspect-square max-w-xl mx-auto rounded-2xl overflow-hidden bg-[#111111] border border-white/10">
+              {selectedVariation ? (
+                <div className="relative w-full h-full">
+                  <Image
+                    src={selectedVariation.url}
+                    alt="Selected design"
+                    fill
+                    className="object-contain"
+                  />
+                  <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 text-xs text-white/80 backdrop-blur-sm">
+                    Seed: #{selectedVariation.seed}
+                  </div>
+                </div>
+              ) : currentRefImage ? (
+                <div className="relative w-full h-full">
+                  <Image
+                    src={currentRefImage}
+                    alt="Reference"
+                    fill
+                    className="object-contain"
+                  />
+                  <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 text-xs text-white/80 backdrop-blur-sm">
+                    Reference Image
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-white/30">
+                  <ImageIcon className="w-16 h-16 mb-4 opacity-30" />
+                  <p className="text-lg font-medium">No image yet</p>
+                  <p className="text-sm">Upload a reference and generate designs</p>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+
+          {/* Variation Thumbnails */}
+          {variations.length > 0 && (
+            <div className="max-w-xl mx-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium text-white">Generated Designs</h3>
+                <span className="text-sm text-white/50">
+                  {selectedIds.length} selected
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-4 gap-3 mb-6">
+                {variations.map((variation, i) => (
+                  <motion.div
+                    key={variation.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.05 }}
+                    className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all ${
+                      selectedVariation?.id === variation.id 
+                        ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/30' 
+                        : 'border-transparent hover:border-white/20'
+                    }`}
+                    onClick={() => selectForPreview(variation)}
+                  >
+                    <Image
+                      src={variation.url}
+                      alt={`Variation ${i + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                    {/* Checkbox for multi-select */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelection(variation.id);
+                      }}
+                      className={`absolute top-2 right-2 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                        selectedIds.includes(variation.id)
+                          ? 'bg-[var(--accent)] border-[var(--accent)]'
+                          : 'bg-black/40 border-white/40 hover:border-white'
+                      }`}
+                    >
+                      {selectedIds.includes(variation.id) && (
+                        <Check className="w-3 h-3 text-white" />
+                      )}
+                    </button>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleDownload}
+                  disabled={selectedIds.length === 0}
+                  className="flex-1 py-2.5 rounded-xl bg-[var(--accent)] text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <Download className="w-4 h-4" />
+                  Download ({selectedIds.length})
+                </button>
+                
+                <button
+                  onClick={useAsReference}
+                  disabled={!selectedVariation}
+                  className="py-2.5 px-4 rounded-xl bg-white/10 text-white font-medium flex items-center gap-2 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  title="Use selected image as new reference"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Iterate
+                </button>
+                
+                <button
+                  onClick={handleGenerate}
+                  className="py-2.5 px-4 rounded-xl bg-white/10 text-white font-medium flex items-center gap-2 hover:bg-white/15 transition-all"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Regenerate
+                </button>
+              </div>
+            </div>
+          )}
+        </main>
       </div>
     </main>
   );

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Sparkles, Github, Mail, AlertCircle } from "lucide-react";
+import { Mail, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -15,6 +15,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -90,14 +91,23 @@ export default function LoginPage() {
                 Forgot password?
               </Link>
             </div>
-            <input 
-              type="password" 
-              className="input w-full" 
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <input 
+                type={showPassword ? "text" : "password"}
+                className="input w-full pr-12" 
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] hover:text-white transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
 
           <button 
@@ -118,17 +128,13 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3">
           <button 
             onClick={handleGoogleSignIn}
-            className="btn btn-secondary py-2 flex items-center justify-center gap-2"
+            className="btn btn-secondary py-2.5 flex items-center justify-center gap-2"
           >
             <Mail className="w-4 h-4" />
-            Google
-          </button>
-          <button className="btn btn-secondary py-2 flex items-center justify-center gap-2" disabled>
-            <Github className="w-4 h-4" />
-            GitHub
+            Continue with Google
           </button>
         </div>
 

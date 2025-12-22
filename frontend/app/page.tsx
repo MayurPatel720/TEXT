@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Header, Footer } from "@/components/layout";
 import { useRouter } from "next/navigation";
 import { useTransition } from "@/context/TransitionContext";
+import { PricingSection } from "@/components/PricingSection";
 
 
 export default function HomePage() {
@@ -215,20 +216,7 @@ export default function HomePage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-6 relative z-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-7xl font-bold mb-6">
-              <span className="text-white">Simple Pricing</span>
-            </h2>
-            <p className="text-xl md:text-2xl text-[var(--text-secondary)]">
-              Choose the plan that fits your needs
-            </p>
-          </div>
-          
-          <PricingToggle />
-        </div>
-      </section>
+      <PricingSection />
 
       <Footer />
     </main>

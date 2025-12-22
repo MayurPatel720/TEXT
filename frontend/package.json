@@ -21,14 +21,18 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
     "bcryptjs": "^3.0.3",
+    "formik": "^2.4.9",
     "framer-motion": "^12.23.26",
     "lucide-react": "^0.561.0",
     "mongoose": "^9.0.1",
     "next": "^14.2.35",
     "next-auth": "^4.24.13",
-    "nodemailer": "^7.0.11",
+    "nodemailer": "^7.0.12",
+    "razorpay": "^2.9.6",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.6.0",
+    "yup": "^1.7.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -45,4 +49,3 @@
     "typescript": "^5"
   }
 }
-

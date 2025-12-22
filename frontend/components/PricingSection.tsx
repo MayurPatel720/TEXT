@@ -4,9 +4,13 @@ import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { useState } from "react";
 import Script from "next/script";
+import { useSession, signIn } from "next-auth/react";
 
 export function PricingSection() {
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+  const { data: session, status } = useSession();
+
+  console.log("🎯 PricingSection mounted - session status:", status, "user:", session?.user?.email);
 
   const plans = [
     {
@@ -16,7 +20,10 @@ export function PricingSection() {
       features: ["5 generations", "Standard quality", "JPG downloads"],
       cta: "Get Started",
       popular: false,
-      action: () => window.location.href = "/studio"
+      action: () => {
+        console.log("❌ STARTER button clicked");
+        window.location.href = "/studio";
+      }
     },
     {
       name: "Pro",
@@ -27,34 +34,45 @@ export function PricingSection() {
       features: ["100 generations/mo", "HD quality", "PNG & TIFF", "Priority queue", "History saved"],
       cta: "Start Pro Trial",
       popular: true,
-      action: () => handlePayment(billing === "monthly" ? "pro_monthly" : "pro_yearly")
+      action: () => {
+        console.log("✅ PRO button clicked! Billing:", billing === "monthly" ? "monthly" : "yearly");
+        handlePayment(billing === "monthly" ? "pro_monthly" : "pro_yearly");
+      }
     },
     {
-      name: "Enterprise",
+      name: "Business",
       price: { monthly: "Custom", yearly: "Custom" },
       period: "",
       features: ["Unlimited generations", "API access", "Custom models", "Dedicated support"],
       cta: "Contact Sales",
       popular: false,
-      action: () => window.location.href = "mailto:sales@textileai.com"
+      action: () => {
+        console.log("📧 BUSINESS button clicked");
+        window.location.href = "mailto:sales@textileai.com";
+      }
     }
   ];
 
   const handlePayment = async (planId: string) => {
-    try {
-      // Get user session
-      const sessionRes = await fetch('/api/auth/session');
-      const session = await sessionRes.json();
-      
-      if (!session?.user) {
-        // Redirect to login
-        window.location.href = '/login';
-        return;
-      }
+    console.log("handlePayment called for plan:", planId);
+    
+    if (status === "loading") {
+      alert("Please wait while we verify your session...");
+      return;
+    }
 
+    if (!session?.user) {
+      console.log("No session found, redirecting to login...");
+      signIn(undefined, { callbackUrl: '/studio' }); 
+      return;
+    }
+
+    try {
+      console.log("Creating order for plan:", planId);
       // Create order
       const orderResponse = await fetch(`/api/payment?planId=${planId}`);
       const orderData = await orderResponse.json();
+      console.log("Order data received:", orderData);
 
       if (!orderData.success) {
         alert('Failed to create order. Please try again.');
@@ -76,6 +94,7 @@ export function PricingSection() {
         description: orderData.order.planName,
         order_id: orderData.order.id,
         handler: async function (response: any) {
+          console.log("Payment success, validating signature...");
           // Process payment on backend
           const verifyResponse = await fetch('/api/payment', {
             method: 'POST',
@@ -102,8 +121,9 @@ export function PricingSection() {
           name: session.user.name,
         },
         theme: {
-          color: "#6366f1",
+          color: "#0066FF",
         },
+        image: "/logo.png",
       };
 
       const razorpay = new (window as any).Razorpay(options);
