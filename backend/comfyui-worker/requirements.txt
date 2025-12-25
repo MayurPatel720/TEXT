@@ -1,0 +1,18 @@
+# ComfyUI Worker Dependencies
+
+# FastAPI HTTP server
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# HTTP client
+httpx==0.26.0
+
+# MongoDB (for direct GridFS upload if needed)
+pymongo==4.6.1
+
+# Image processing
+Pillow==10.2.0
+
+# Utilities
+python-dotenv==1.0.0

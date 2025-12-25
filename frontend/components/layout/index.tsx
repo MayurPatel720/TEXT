@@ -46,50 +46,75 @@ export function Header() {
   if (isStudio) {
     return (
       <motion.header
-        className="fixed top-0 left-0 right-0 z-50 glass border-b border-[var(--border)]"
+        className="fixed top-0 left-0 right-0 z-50 bg-[#111111] border-b border-white/10"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
       >
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="h-16 flex items-center justify-between">
+          {/* Left side - Desktop: matches sidebar, Mobile: compact */}
+          <div className="hidden md:flex w-80 flex-shrink-0 px-4 items-center gap-3 border-r border-white/10 h-full">
             <button 
               onClick={() => triggerTransition(() => router.push("/"))}
-              className="p-2 hover:bg-[var(--bg-elevated)] rounded-full transition-colors group"
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors group"
             >
-              <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] rotate-180 group-hover:text-white" />
+              <ChevronRight className="w-5 h-5 text-white/50 rotate-180 group-hover:text-white" />
             </button>
-
-            <div className="h-6 w-px bg-[var(--border)]" />
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center relative">
-              <Image src="/logo.png" alt="FabricDesigner.AI" width={32} height={32} className="object-contain" />
-              </div>
-              <span className="font-semibold text-lg">Design Studio</span>
+              <Image src="/logo.png" alt="FabricDesigner.AI" width={28} height={28} className="object-contain" />
+              <span className="font-semibold text-white">Design Studio</span>
             </div>
+          </div>
+          
+          {/* Mobile Header - visible on small screens */}
+          <div className="flex md:hidden items-center gap-3 px-4">
+            <button 
+              onClick={() => triggerTransition(() => router.push("/"))}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 text-white/50 rotate-180" />
+            </button>
+            <div className="flex items-center gap-2">
+              <Image src="/logo.png" alt="FabricDesigner.AI" width={24} height={24} className="object-contain" />
+              <span className="font-medium text-white text-sm">Studio</span>
             </div>
-            
-            <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-2 bg-[var(--bg-elevated)] px-3 py-1.5 rounded-full border border-[var(--border)]">
-              <Sparkles className="w-3 h-3 text-[var(--accent)]" />
-              <span className="text-sm font-medium">
-                {session?.user?.credits !== undefined ? `${session.user.credits} credits left` : 'Loading...'}
+          </div>
+          
+          {/* Right side - main content area */}
+          <div className="flex-1 px-6 flex items-center justify-end gap-4">
+            {/* Credits Badge */}
+            <div className="hidden md:flex items-center gap-2 bg-[#1a1a1a] px-3 py-1.5 rounded-full border border-white/10">
+              <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <span className="text-sm font-medium text-white/80">
+                {session?.user?.credits !== undefined ? `${session.user.credits} credits` : '...'}
               </span>
             </div>
+            
+            {/* User Profile */}
             {session ? (
               <div className="relative">
                 <button 
                   onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                  className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 border border-white/10 ring-2 ring-transparent hover:ring-[var(--accent)] transition-all cursor-pointer flex items-center justify-center text-white text-sm font-semibold"
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-white/10 hover:border-[var(--accent)] transition-all cursor-pointer flex items-center justify-center text-white text-sm font-semibold"
                 >
                   {session.user?.name?.[0] || "U"}
                 </button>
                 {profileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-lg shadow-xl py-2">
-                    <div className="px-4 py-2 border-b border-[var(--border)]">
-                      <p className="text-sm font-medium">{session.user?.name}</p>
-                      <p className="text-xs text-[var(--text-secondary)]">{session.user?.email}</p>
+                  <div className="absolute right-0 mt-2 w-52 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl py-2 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-white/10 bg-white/5">
+                      <p className="text-sm font-medium text-white">{session.user?.name}</p>
+                      <p className="text-xs text-white/50 mt-0.5 truncate">{session.user?.email}</p>
                     </div>
-                    <button onClick={handleSignOut} className="w-full px-4 py-2 text-sm text-left hover:bg-[var(--bg-primary)] flex items-center gap-2">
+                    <button 
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        triggerTransition(() => router.push("/history"));
+                      }}
+                      className="w-full px-4 py-2.5 text-sm text-left hover:bg-white/5 flex items-center gap-3 text-white/80"
+                    >
+                      <Clock className="w-4 h-4" />
+                      History
+                    </button>
+                    <button onClick={handleSignOut} className="w-full px-4 py-2.5 text-sm text-left hover:bg-white/5 flex items-center gap-3 text-red-400">
                       <LogOut className="w-4 h-4" />
                       Sign Out
                     </button>
@@ -98,10 +123,10 @@ export function Header() {
               </div>
             ) : (
               <Link href="/login">
-                <button className="btn btn-primary px-4 py-2 text-sm">Sign In</button>
+                <button className="btn btn-primary px-4 py-2 text-sm rounded-xl">Sign In</button>
               </Link>
             )}
-            </div>
+          </div>
         </div>
       </motion.header>
     );

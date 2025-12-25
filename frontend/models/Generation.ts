@@ -21,10 +21,26 @@ const GenerationSchema = new mongoose.Schema({
   // Output Data
   generatedImageUrl: {
     type: String,
-    required: true, // URL of the generated textile design
+    required: false, // Made optional - we may use GridFS instead
+  },
+  // GridFS image storage (for self-hosted backend)
+  generatedImageId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'images.files', // GridFS collection
   },
   replicateId: {
-    type: String, // Replicate prediction ID
+    type: String, // Replicate prediction ID (legacy)
+  },
+  jobId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Job', // Reference to the job queue
+  },
+  
+  // Backend source
+  backend: {
+    type: String,
+    enum: ['replicate', 'self-hosted'],
+    default: 'self-hosted',
   },
   
   // Metadata
@@ -35,7 +51,7 @@ const GenerationSchema = new mongoose.Schema({
   },
   modelVersion: {
     type: String,
-    default: 'flux-kontext-fast',
+    default: 'flux-kontext-dev',
   },
   generationTime: {
     type: Number, // Time taken in seconds

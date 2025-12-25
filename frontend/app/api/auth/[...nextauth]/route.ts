@@ -72,6 +72,23 @@ const handler = NextAuth({
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days - users won't need to sign in daily
+    updateAge: 24 * 60 * 60, // 24 hours - refresh session token every 24 hours
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days - JWT token expiration
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60, // 30 days cookie persistence
+      },
+    },
   },
   callbacks: {
     async jwt({ token, user }) {

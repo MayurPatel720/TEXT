@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
+import Job from "@/models/Job";
 import Generation from "@/models/Generation";
 
 export const dynamic = 'force-dynamic';
 
-// Using Flux Kontext Fast model for textile design generation
-// Model: prunaai/flux-kontext-fast
-// Cost: ~$0.003 per image
-// Speed: ~2 seconds per image
+// GPU Worker configuration
+const GPU_WORKER_URL = process.env.GPU_WORKER_URL || "http://localhost:8000";
+const API_SECRET = process.env.API_SECRET || "your-secret-key";
+const WEBHOOK_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,151 +68,109 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiToken = process.env.REPLICATE_API_TOKEN;
-
-    // If no API token, return demo response
-    if (!apiToken) {
-      console.log("No REPLICATE_API_TOKEN found - returning demo response");
-      
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const mockVariations = Array.from({ length: num_variations || 4 }, (_, i) => ({
-        id: `demo-${i}-${Date.now()}`,
-        url: image,
-        seed: seed ? seed + i : Math.floor(Math.random() * 1000000)
-      }));
-
-      // Save mock generation to database
-      await Generation.create({
-        userId: user._id,
-        prompt,
-        referenceImageUrl: image,
-        generatedImageUrl: mockVariations[0].url,
-        status: 'completed',
-        modelVersion: 'demo-mode',
-      });
-
-      // Deduct credits
-      await user.deductCredits(1);
-
-      return NextResponse.json({
-        success: true,
-        demo: true,
-        message: "Demo mode - Add REPLICATE_API_TOKEN to .env.local for real generation",
-        variations: mockVariations,
-        creditsRemaining: user.credits,
-      });
-    }
-
-    // Generate multiple variations
+    const numImages = num_variations || 1;
     const variations = [];
-    const numImages = num_variations || 4;
     const savedGenerations = [];
 
+    // Generate each variation
     for (let i = 0; i < numImages; i++) {
       try {
-        // Call Replicate API for Flux Kontext
-        const response = await fetch("https://api.replicate.com/v1/predictions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${apiToken}`,
-            "Content-Type": "application/json",
-            "Prefer": "wait" // Wait for result
+        // Create job in queue
+        const job = await Job.create({
+          userId: user._id,
+          status: 'pending',
+          priority: user.plan === 'enterprise' ? 100 : (user.plan === 'pro' ? 10 : 0),
+          input: {
+            imageData: image, // Base64 image
+            prompt: prompt,
+            settings: {
+              seed: seed ? seed + i : undefined,
+              guidance: guidance || (style_strength ? style_strength * 5 : 3.0),
+              denoise: 0.98,
+              steps: 25,
+            },
           },
-          body: JSON.stringify({
-            version: "prunaai/flux-kontext-fast",
-            input: {
-              prompt: prompt,
-              guidance: guidance || (style_strength ? style_strength * 5 : 2.5),
-              speed_mode: "Real Time",
-              img_cond_path: image,
-              ...(seed && { seed: seed + i }), // Different seed per variation
-              ...(aspect_ratio && { aspect_ratio: aspect_ratio }),
-            }
-          }),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-          console.error("Replicate API error:", errorData);
-          
-          // If it's the first variation and it fails, return error
-          if (i === 0) {
-            return NextResponse.json(
-              { error: errorData.detail || errorData.title || "Replicate API Error" },
-              { status: response.status }
-            );
-          }
-          continue; // Skip this variation
-        }
+        // Create pending generation record
+        const generation = await Generation.create({
+          userId: user._id,
+          prompt,
+          referenceImageUrl: image.substring(0, 100) + '...', // Truncated for storage
+          status: 'processing',
+          jobId: job._id,
+          modelVersion: 'flux-kontext-dev',
+          backend: 'self-hosted',
+        });
 
-        const prediction = await response.json();
-        
-        // If we need to poll for result
-        let result = prediction;
-        if (result.status === "starting" || result.status === "processing") {
-          // Poll until complete
-          while (result.status !== "succeeded" && result.status !== "failed") {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            const statusResponse = await fetch(
-              `https://api.replicate.com/v1/predictions/${prediction.id}`,
-              {
-                headers: {
-                  "Authorization": `Bearer ${apiToken}`,
-                },
-              }
-            );
-            result = await statusResponse.json();
-          }
-        }
-
-        if (result.status === "succeeded" && result.output) {
-          const imageUrl = typeof result.output === 'string' ? result.output : result.output[0] || result.output;
-          
-          variations.push({
-            id: `gen-${i}-${Date.now()}`,
-            url: imageUrl,
-            seed: i
+        // Try to send to GPU worker (async)
+        try {
+          const workerResponse = await fetch(`${GPU_WORKER_URL}/generate/async`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-API-Secret": API_SECRET,
+            },
+            body: JSON.stringify({
+              job_id: job._id.toString(),
+              image_base64: image.replace(/^data:image\/\w+;base64,/, ''),
+              prompt: prompt,
+              seed: seed ? seed + i : undefined,
+              guidance: guidance || 3.0,
+              denoise: 0.98,
+              steps: 25,
+              webhook_url: `${WEBHOOK_BASE_URL}/api/webhook/comfyui`,
+            }),
           });
 
-          // Save generation to database
-          const generation = await Generation.create({
-            userId: user._id,
-            prompt,
-            referenceImageUrl: image,
-            generatedImageUrl: imageUrl,
-            replicateId: prediction.id,
-            status: 'completed',
-            modelVersion: 'flux-kontext-fast',
-            generationTime: result.metrics?.predict_time,
-          });
-
-          savedGenerations.push(generation._id);
+          if (!workerResponse.ok) {
+            console.warn(`Worker returned ${workerResponse.status}, job queued for later`);
+          } else {
+            // Update job status
+            job.status = 'processing';
+            job.execution = { startedAt: new Date() };
+            await job.save();
+          }
+        } catch (workerError) {
+          // Worker not available, job stays in queue for later processing
+          console.warn("GPU worker not available, job queued:", workerError);
         }
+
+        variations.push({
+          id: generation._id.toString(),
+          jobId: job._id.toString(),
+          status: 'processing',
+          seed: seed ? seed + i : null,
+        });
+
+        savedGenerations.push(generation._id);
+
       } catch (error) {
-        console.error(`Error generating variation ${i}:`, error);
+        console.error(`Error creating job ${i}:`, error);
       }
     }
 
     if (variations.length === 0) {
       return NextResponse.json(
-        { error: "Failed to generate any variations. Please try again." },
+        { error: "Failed to create any generation jobs. Please try again." },
         { status: 500 }
       );
     }
 
-    // Deduct credits (1 credit per successful generation)
+    // Deduct credits (1 credit per job created)
     await user.deductCredits(variations.length);
 
-    console.log(`✅ Generated ${variations.length} images for ${user.email}. Credits remaining: ${user.credits}`);
+    console.log(`✅ Created ${variations.length} jobs for ${user.email}. Credits remaining: ${user.credits}`);
 
     return NextResponse.json({
       success: true,
+      async: true, // Indicates async processing
       variations: variations,
-      model: "prunaai/flux-kontext-fast",
+      model: "flux-kontext-dev",
+      backend: "self-hosted",
       creditsRemaining: user.credits,
       generationIds: savedGenerations,
+      message: "Jobs queued for processing. Poll /api/generate/[id] for status.",
     });
 
   } catch (error) {

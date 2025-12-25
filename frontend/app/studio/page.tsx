@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
-import { motion } from "framer-motion";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Upload, 
   Sparkles, 
@@ -20,15 +20,21 @@ import {
   Zap,
   Plus,
   HelpCircle,
-  Info
+  Info,
+  Menu,
+  GripVertical,
+  AlertCircle
 } from "lucide-react";
 import Image from "next/image";
 import { Header } from "@/components/layout";
+import { GenerationProgress } from "@/components/GenerationProgress";
 
 interface Variation {
   id: string;
-  url: string;
-  seed: number;
+  url?: string;
+  imageUrl?: string;
+  seed?: number;
+  status?: "pending" | "processing" | "completed" | "failed";
 }
 
 interface ReferenceImage {
@@ -127,15 +133,15 @@ export default function StudioPage() {
   const [isDragging, setIsDragging] = useState(false);
 
   // Settings
-  const [styleStrength, setStyleStrength] = useState(0.7);
+  const [styleStrength, setStyleStrength] = useState(0.9);
   const [structureStrength, setStructureStrength] = useState(0.5);
-  const [numVariations, setNumVariations] = useState(4);
+  const [numVariations, setNumVariations] = useState(2);
 
   // Advanced Settings
   const [seed, setSeed] = useState<string>("");
   const [aspectRatio, setAspectRatio] = useState("1:1");
   const [outputFormat, setOutputFormat] = useState("png");
-  const [quality, setQuality] = useState(80);
+  const [quality, setQuality] = useState(90);
   const [guidance, setGuidance] = useState(2.5);
 
   // Collapsible sections
@@ -143,7 +149,60 @@ export default function StudioPage() {
   const [showOutputSettings, setShowOutputSettings] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  // Sidebar state
+  const [sidebarWidth, setSidebarWidth] = useState(400);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const sidebarRef = useRef<HTMLElement>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Check for mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setIsMobileSidebarOpen(false);
+      }
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Handle sidebar resize
+  const startResizing = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      const newWidth = e.clientX;
+      // Clamp between 280px and 480px
+      setSidebarWidth(Math.max(280, Math.min(480, newWidth)));
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing]);
 
   // Handle file drop/select - now supports multiple files
   const handleFiles = useCallback((files: FileList) => {
@@ -198,7 +257,86 @@ export default function StudioPage() {
     return referenceImages.find(img => img.id === selectedRefImage)?.url || null;
   }, [referenceImages, selectedRefImage]);
 
-  // Generate variations
+  // Generation polling state
+  const [generationJobs, setGenerationJobs] = useState<{
+    id: string;
+    status: "pending" | "processing" | "completed" | "failed";
+    imageUrl?: string;
+    error?: string;
+    queuePosition?: number;
+    estimatedWait?: number;
+  }[]>([]);
+  const pollTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
+
+  // Poll a single job for status
+  const pollJob = useCallback(async (jobId: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/generate/${jobId}`);
+      if (!response.ok) return false;
+      
+      const data = await response.json();
+      
+      setGenerationJobs(prev => prev.map(job => {
+        if (job.id !== jobId) return job;
+        return {
+          ...job,
+          status: data.status,
+          imageUrl: data.imageUrl,
+          error: data.error,
+          queuePosition: data.queuePosition,
+          estimatedWait: data.estimatedWait,
+        };
+      }));
+
+      // Update variations when completed
+      if (data.status === "completed" && data.imageUrl) {
+        setVariations(prev => {
+          const exists = prev.some(v => v.id === jobId);
+          if (exists) {
+            return prev.map(v => v.id === jobId ? { ...v, url: data.imageUrl, imageUrl: data.imageUrl } : v);
+          }
+          return [...prev, { id: jobId, url: data.imageUrl, imageUrl: data.imageUrl }];
+        });
+        
+        // Select first completed variation
+        setSelectedVariation(prev => prev || { id: jobId, url: data.imageUrl, imageUrl: data.imageUrl });
+      }
+
+      return data.status === "completed" || data.status === "failed";
+    } catch {
+      return false;
+    }
+  }, []);
+
+  // Start polling all jobs
+  const startPolling = useCallback((jobIds: string[]) => {
+    const poll = async () => {
+      const results = await Promise.all(jobIds.map(id => pollJob(id)));
+      
+      // Check if all done
+      const allDone = results.every(done => done);
+      
+      if (allDone) {
+        setStatus("complete");
+        setProgress(100);
+      } else {
+        // Continue polling
+        const timeout = setTimeout(poll, 3000);
+        pollTimeoutsRef.current.push(timeout);
+      }
+    };
+    
+    poll();
+  }, [pollJob]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      pollTimeoutsRef.current.forEach(clearTimeout);
+    };
+  }, []);
+
+  // Generate variations (async with polling)
   const handleGenerate = useCallback(async () => {
     const refImageUrl = getCurrentRefImageUrl();
     if (!refImageUrl || !prompt.trim()) {
@@ -207,23 +345,16 @@ export default function StudioPage() {
     }
 
     setStatus("generating");
-    setProgress(0);
+    setProgress(10);
     setError(null);
     setVariations([]);
     setSelectedIds([]);
     setSelectedVariation(null);
+    setGenerationJobs([]);
+    pollTimeoutsRef.current.forEach(clearTimeout);
+    pollTimeoutsRef.current = [];
 
     try {
-      const progressInterval = setInterval(() => {
-        setProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + Math.random() * 15;
-        });
-      }, 500);
-
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -241,27 +372,37 @@ export default function StudioPage() {
         })
       });
 
-      clearInterval(progressInterval);
-
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || "Generation failed. Please try again.");
       }
 
       const data = await response.json();
+      setProgress(30);
       
-      setProgress(100);
-      setVariations(data.variations || []);
-      if (data.variations?.length > 0) {
+      // Handle async response (self-hosted backend)
+      if (data.async && data.variations) {
+        const jobs = data.variations.map((v: any) => ({
+          id: v.id,
+          status: v.status || "pending",
+        }));
+        
+        setGenerationJobs(jobs);
+        startPolling(jobs.map((j: any) => j.id));
+        
+      } else if (data.variations?.length > 0) {
+        // Handle sync response (legacy/fallback)
+        setProgress(100);
+        setVariations(data.variations);
         setSelectedVariation(data.variations[0]);
+        setStatus("complete");
       }
-      setStatus("complete");
       
     } catch (err: any) {
       setError(err.message || "Something went wrong");
       setStatus("error");
     }
-  }, [getCurrentRefImageUrl, prompt, styleStrength, structureStrength, numVariations, seed, aspectRatio, outputFormat, quality, guidance]);
+  }, [getCurrentRefImageUrl, prompt, styleStrength, structureStrength, numVariations, seed, aspectRatio, outputFormat, quality, guidance, startPolling]);
 
   // Toggle selection
   const toggleSelection = useCallback((id: string) => {
@@ -300,7 +441,7 @@ export default function StudioPage() {
     if (selectedVariation) {
       const newImage: ReferenceImage = {
         id: `ref-${Date.now()}`,
-        url: selectedVariation.url,
+        url: selectedVariation.url || selectedVariation.imageUrl || "",
         file: new File([], "generated.png")
       };
       setReferenceImages(prev => [...prev, newImage]);
@@ -350,10 +491,59 @@ export default function StudioPage() {
     <main className="min-h-screen bg-[#0a0a0a]">
       <Header />
 
+      {/* Mobile Sidebar Toggle Button - Fixed position */}
+      {isMobile && (
+        <button
+          onClick={() => setIsMobileSidebarOpen(true)}
+          className="fixed bottom-6 left-6 z-40 p-4 rounded-full bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/30 md:hidden"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      )}
+
+      {/* Mobile Sidebar Overlay */}
+      <AnimatePresence>
+        {isMobile && isMobileSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm md:hidden"
+            onClick={() => setIsMobileSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
       <div className="pt-16 h-screen flex">
-        {/* Left Sidebar */}
-        <aside className="w-72 flex-shrink-0 border-r border-white/10 bg-[#111111] flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto scrollbar-thin">
+        {/* Left Sidebar - Desktop Resizable / Mobile Drawer */}
+        <AnimatePresence>
+          {(!isMobile || isMobileSidebarOpen) && (
+            <motion.aside
+              ref={sidebarRef}
+              initial={isMobile ? { x: -320 } : false}
+              animate={isMobile ? { x: 0 } : false}
+              exit={isMobile ? { x: -320 } : undefined}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className={`
+                ${isMobile 
+                  ? 'fixed left-0 top-0 bottom-0 z-50 w-[320px] pt-16' 
+                  : 'relative flex-shrink-0'
+                }
+                border-r border-white/10 bg-[#111111] flex flex-col overflow-hidden
+              `}
+              style={!isMobile ? { width: sidebarWidth } : undefined}
+            >
+              {/* Mobile Close Button */}
+              {isMobile && (
+                <button
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className="absolute top-20 right-3 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors z-10"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+              
+              <div className="flex-1 overflow-y-auto scrollbar-thin">
             {/* Prompt Section */}
             <div className="p-4 border-b border-white/5">
               <label className="flex items-center gap-2 text-sm font-medium mb-3 text-white/90">
@@ -649,24 +839,42 @@ export default function StudioPage() {
               1 credit per image • {numVariations} credits total
             </p>
           </div>
-        </aside>
+
+          {/* Resize Handle - Desktop only */}
+          {!isMobile && (
+            <div
+              onMouseDown={startResizing}
+              className={`absolute right-0 top-0 bottom-0 w-1 cursor-col-resize group hover:bg-[var(--accent)]/50 transition-colors ${
+                isResizing ? 'bg-[var(--accent)]' : 'bg-transparent'
+              }`}
+            >
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-8 -mr-1.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <GripVertical className="w-3 h-3 text-white/40" />
+              </div>
+            </div>
+          )}
+        </motion.aside>
+          )}
+        </AnimatePresence>
 
         {/* Right Main Panel */}
-        <main className="flex-1 overflow-y-auto p-8 bg-[#0a0a0a]">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#0a0a0a]">
           {/* Large Preview */}
           <div className="mb-8">
             <div className="aspect-square max-w-xl mx-auto rounded-2xl overflow-hidden bg-[#111111] border border-white/10">
-              {selectedVariation ? (
+              {selectedVariation && (selectedVariation.url || selectedVariation.imageUrl) ? (
                 <div className="relative w-full h-full">
                   <Image
-                    src={selectedVariation.url}
+                    src={selectedVariation.url || selectedVariation.imageUrl || ""}
                     alt="Selected design"
                     fill
                     className="object-contain"
                   />
-                  <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 text-xs text-white/80 backdrop-blur-sm">
-                    Seed: #{selectedVariation.seed}
-                  </div>
+                  {selectedVariation.seed && (
+                    <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 text-xs text-white/80 backdrop-blur-sm">
+                      Seed: #{selectedVariation.seed}
+                    </div>
+                  )}
                 </div>
               ) : currentRefImage ? (
                 <div className="relative w-full h-full">
@@ -700,7 +908,7 @@ export default function StudioPage() {
                 </span>
               </div>
               
-              <div className="grid grid-cols-4 gap-3 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-6">
                 {variations.map((variation, i) => (
                   <motion.div
                     key={variation.id}
@@ -715,7 +923,7 @@ export default function StudioPage() {
                     onClick={() => selectForPreview(variation)}
                   >
                     <Image
-                      src={variation.url}
+                      src={variation.url || variation.imageUrl || ""}
                       alt={`Variation ${i + 1}`}
                       fill
                       className="object-cover"
@@ -741,32 +949,32 @@ export default function StudioPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 md:gap-3">
                 <button
                   onClick={handleDownload}
                   disabled={selectedIds.length === 0}
-                  className="flex-1 py-2.5 rounded-xl bg-[var(--accent)] text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="flex-1 min-w-[120px] py-2.5 rounded-xl bg-[var(--accent)] text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm md:text-base"
                 >
                   <Download className="w-4 h-4" />
-                  Download ({selectedIds.length})
+                  <span className="hidden sm:inline">Download</span> ({selectedIds.length})
                 </button>
                 
                 <button
                   onClick={useAsReference}
                   disabled={!selectedVariation}
-                  className="py-2.5 px-4 rounded-xl bg-white/10 text-white font-medium flex items-center gap-2 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="py-2.5 px-3 md:px-4 rounded-xl bg-white/10 text-white font-medium flex items-center gap-2 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm md:text-base"
                   title="Use selected image as new reference"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  Iterate
+                  <span className="hidden sm:inline">Iterate</span>
                 </button>
                 
                 <button
                   onClick={handleGenerate}
-                  className="py-2.5 px-4 rounded-xl bg-white/10 text-white font-medium flex items-center gap-2 hover:bg-white/15 transition-all"
+                  className="py-2.5 px-3 md:px-4 rounded-xl bg-white/10 text-white font-medium flex items-center gap-2 hover:bg-white/15 transition-all text-sm md:text-base"
                 >
                   <Sparkles className="w-4 h-4" />
-                  Regenerate
+                  <span className="hidden sm:inline">Regenerate</span>
                 </button>
               </div>
             </div>

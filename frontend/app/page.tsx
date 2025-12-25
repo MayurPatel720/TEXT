@@ -20,7 +20,7 @@ export default function HomePage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-24 px-6 overflow-hidden z-10">
+      <section className="relative pt-24 md:pt-32 pb-16 md:pb-24 px-4 sm:px-6 overflow-hidden z-10">
         {/* Animated gradient background */}
         <motion.div 
           className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-pink-900/20 opacity-30 pointer-events-none"
@@ -74,28 +74,28 @@ export default function HomePage() {
             >
               <Sparkles className="w-4 h-4 text-purple-400" />
               <span className="text-sm font-medium bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                Powered by AI
+                AI-Powered Design Assistant
               </span>
             </motion.div>
             
             <motion.h1 
-              className="text-5xl md:text-7xl font-bold mb-6"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 px-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
             >
               <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
-                Professional Textile Design<br />in Seconds
+                Upload Image<br />Get Fabric Pattern
               </span>
             </motion.h1>
             
             <motion.p 
-              className="text-xl md:text-2xl text-[var(--text-secondary)] mb-12 max-w-3xl mx-auto"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-[var(--text-secondary)] mb-8 md:mb-12 max-w-3xl mx-auto px-2"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.8 }}
             >
-              Transform your reference images into stunning, print-ready fabric patterns with AI. FabricDesigner.AI makes textile design faster, smarter, and more creative.
+              Speed up your textile design workflow. Upload reference images, generate multiple pattern variations in seconds, and focus on what you do best — creating stunning designs.
             </motion.p>
             
             <motion.div 
@@ -109,7 +109,7 @@ export default function HomePage() {
                 className="btn btn-primary btn-lg group"
               >
                 <Sparkles className="w-5 h-5 transition-transform group-hover:rotate-12" />
-                Start Designing Free
+                Start Creating
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </button>
 
@@ -125,14 +125,14 @@ export default function HomePage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9, duration: 0.6 }}
             >
-              ✨ Free credits on signup • No credit card required
+              ✨ 5 Free Credits • No Credit Card • Results in Seconds
             </motion.p>
           </motion.div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-6 relative z-10">
+      <section id="features" className="py-12 md:py-20 px-4 sm:px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
           <motion.div 
             className="text-center mb-16"
@@ -141,19 +141,19 @@ export default function HomePage() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-5xl md:text-7xl font-bold mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6">
               <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-teal-400 bg-clip-text text-transparent">
                 Why Choose
               </span>
               <br />
               <span className="text-white">FabricDesigner.AI?</span>
             </h2>
-            <p className="text-xl md:text-2xl text-[var(--text-secondary)] max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-[var(--text-secondary)] max-w-3xl mx-auto leading-relaxed px-2">
               Professional-grade textile design tools powered by cutting-edge AI technology
             </p>
           </motion.div>
           
-          <div className="grid md:grid-cols-3 gap-8 md:gap-12">
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8 lg:gap-12">
             <FeatureCard
               icon={<Zap className="w-10 h-10" />}
               title="Lightning Fast"
@@ -179,7 +179,7 @@ export default function HomePage() {
       </section>
 
       {/* Showcase Section */}
-      <section id="showcase" className="py-20 px-6 relative z-10">
+      <section id="showcase" className="py-12 md:py-20 px-4 sm:px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
           <motion.div 
             className="text-center mb-16"
@@ -188,17 +188,17 @@ export default function HomePage() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-5xl md:text-7xl font-bold mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6">
               <span className="bg-gradient-to-r from-blue-400 via-teal-400 to-green-400 bg-clip-text text-transparent">
                 Stunning Results
               </span>
             </h2>
-            <p className="text-xl md:text-2xl text-[var(--text-secondary)]">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-[var(--text-secondary)]">
               See what's possible with AI-powered textile design
             </p>
           </motion.div>
           
-          <div className="grid md:grid-cols-2 gap-8 md:gap-12">
+          <div className="grid md:grid-cols-2 gap-6 md:gap-8 lg:gap-12">
             <ShowcaseCard
               title="Floral Patterns"
               description="Intricate, seamless floral designs for premium fabrics"
