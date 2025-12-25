@@ -6,6 +6,7 @@
 const VASTAI_API_URL = "https://console.vast.ai/api/v0";
 const VASTAI_API_KEY = process.env.VASTAI_API_KEY || "";
 const VASTAI_INSTANCE_ID = process.env.VASTAI_INSTANCE_ID || "";
+const GPU_WORKER_URL = process.env.GPU_WORKER_URL || "";
 
 interface InstanceStatus {
   id: number;
@@ -99,6 +100,11 @@ export async function startInstance(): Promise<boolean> {
  * Get the worker URL for the GPU instance
  */
 export async function getWorkerUrl(): Promise<string | null> {
+  // First, check if GPU_WORKER_URL is set (localtunnel/ngrok URL)
+  if (GPU_WORKER_URL) {
+    return GPU_WORKER_URL;
+  }
+
   const status = await getInstanceStatus();
   
   if (!status || status.status !== "running" || !status.publicIp) {
@@ -146,6 +152,30 @@ export async function ensureGpuAvailable(): Promise<{
   status: "ready" | "starting" | "unavailable";
   message: string;
 }> {
+  // First, check if GPU_WORKER_URL is configured (localtunnel/ngrok)
+  if (GPU_WORKER_URL) {
+    console.log("🔌 Using configured GPU_WORKER_URL:", GPU_WORKER_URL);
+    
+    const healthy = await isWorkerHealthy(GPU_WORKER_URL);
+    
+    if (healthy) {
+      console.log("✅ GPU worker is healthy");
+      return {
+        url: GPU_WORKER_URL,
+        status: "ready",
+        message: "GPU is ready",
+      };
+    }
+    
+    console.warn("⚠️ GPU worker configured but not healthy");
+    return {
+      url: GPU_WORKER_URL, // Still return URL so we can try to send requests
+      status: "starting",
+      message: "GPU worker not responding, may be initializing...",
+    };
+  }
+
+  // Fallback to Vast.ai API for dynamic URL
   const status = await getInstanceStatus();
 
   if (!status) {
@@ -214,3 +244,4 @@ export async function ensureGpuAvailable(): Promise<{
     message: `Unknown instance status: ${status.status}`,
   };
 }
+
