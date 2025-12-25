@@ -1,22 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { cookies } from "next/headers";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Job from "@/models/Job";
 import Generation from "@/models/Generation";
-import { ensureGpuAvailable, getWorkerUrl, isWorkerHealthy } from "@/lib/vastai";
+import { ensureGpuAvailable } from "@/lib/vastai";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
 // GPU Worker configuration
 const API_SECRET = process.env.API_SECRET || "your-secret-key";
 const WEBHOOK_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-
-// Auth options for getServerSession
-const authOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
-};
 
 export async function POST(request: NextRequest) {
   try {
