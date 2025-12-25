@@ -143,6 +143,8 @@ export default function StudioPage() {
   const [outputFormat, setOutputFormat] = useState("png");
   const [quality, setQuality] = useState(90);
   const [guidance, setGuidance] = useState(2.5);
+  const [negativePrompt, setNegativePrompt] = useState("");
+  const [steps, setSteps] = useState(25);
 
   // Collapsible sections
   const [showImageGuidance, setShowImageGuidance] = useState(true);
@@ -355,12 +357,18 @@ export default function StudioPage() {
     pollTimeoutsRef.current = [];
 
     try {
+      // Get second reference image if available
+      const secondImage = referenceImages.length > 1 ? 
+        referenceImages.find(img => img.id !== selectedRefImage)?.url : undefined;
+      
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           image: refImageUrl,
+          image2: secondImage,  // Second reference image for merging
           prompt: prompt,
+          negative_prompt: negativePrompt || undefined,
           style_strength: styleStrength,
           structure_strength: structureStrength,
           num_variations: numVariations,
@@ -368,7 +376,8 @@ export default function StudioPage() {
           aspect_ratio: aspectRatio,
           output_format: outputFormat,
           quality: quality,
-          guidance: guidance
+          guidance: guidance,
+          steps: steps
         })
       });
 
@@ -402,7 +411,7 @@ export default function StudioPage() {
       setError(err.message || "Something went wrong");
       setStatus("error");
     }
-  }, [getCurrentRefImageUrl, prompt, styleStrength, structureStrength, numVariations, seed, aspectRatio, outputFormat, quality, guidance, startPolling]);
+  }, [getCurrentRefImageUrl, prompt, negativePrompt, styleStrength, structureStrength, numVariations, seed, aspectRatio, outputFormat, quality, guidance, steps, referenceImages, selectedRefImage, startPolling]);
 
   // Toggle selection
   const toggleSelection = useCallback((id: string) => {
@@ -791,6 +800,34 @@ export default function StudioPage() {
                 displayValue={`${quality}%`}
                 helpText="Image compression quality. Higher = better quality but larger file size. 80-90% is usually ideal."
               />
+
+              {/* Steps Slider */}
+              <Slider
+                value={steps}
+                onChange={setSteps}
+                min={15}
+                max={50}
+                step={5}
+                label="Steps"
+                displayValue={steps.toString()}
+                helpText="Number of denoising steps. More steps = better quality but slower. 20-30 is recommended."
+              />
+
+              {/* Negative Prompt */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <X className="w-3.5 h-3.5 text-white/40" />
+                  <span className="text-xs text-white/60">Negative Prompt</span>
+                  <InfoTooltip text="Describe what you DON'T want in the image. e.g. 'blurry, watermark, low quality, distorted'" />
+                </div>
+                <textarea
+                  value={negativePrompt}
+                  onChange={(e) => setNegativePrompt(e.target.value)}
+                  placeholder="ugly, blurry, bad quality, distorted..."
+                  rows={2}
+                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all resize-none"
+                />
+              </div>
             </CollapsibleSection>
           </div>
 
