@@ -199,7 +199,8 @@ def build_workflow(image1, image2, prompt, negative_prompt, seed, steps, guidanc
             "direction": "right",
             "match_image_size": True,
             "feathering": 0,
-            "background_color": "white"
+            "spacing_width": 0,
+            "spacing_color": "white"
         }}
         image_source = ["146", 0]
     else:
