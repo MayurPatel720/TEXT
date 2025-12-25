@@ -1,92 +1,96 @@
-# Vast.ai Deployment Guide (No Local Docker Needed)
+# Vast.ai Auto-Stop Deployment (FREE - No VPS Needed!)
 
-## Step 1: Prepare Files
+## 🎯 The Solution
 
-Upload these files to a GitHub repo or directly to Vast.ai:
-- All files in `backend/comfyui-worker/`
+Vast.ai has a **built-in autostop feature** that stops your instance after idle time. Combined with your Vercel app triggering instance start via API, you get automatic scaling for FREE!
 
-## Step 2: Rent a GPU on Vast.ai
+**How it works:**
+1. User generates → Vercel starts GPU via Vast.ai API
+2. GPU runs your job → Webhook returns result
+3. GPU auto-stops after 10 min idle → Saves money!
 
-1. Go to https://cloud.vast.ai
-2. Click "Search" to find GPUs
-3. Filter by:
-   - GPU: RTX 4090
-   - VRAM: 24GB+
-   - Disk: 50GB+
-4. Click "RENT" on a good option
-5. Note your **Instance ID** (shown in console)
+**Cost: $0 extra** (just GPU time when running)
 
-## Step 3: Access Your Instance
+---
 
-1. In Vast.ai console, click "Connect" on your instance
-2. Use the provided SSH command or web terminal
+## Step-by-Step Setup
 
-## Step 4: Install ComfyUI (One-Time Setup)
+### Step 1: Get Your Vast.ai API Key
 
-SSH into your instance and run:
+1. Go to https://cloud.vast.ai/account/
+2. Scroll to "API Key" section
+3. Click "Show" and copy your key
+
+### Step 2: Rent a GPU Instance
+
+1. Go to https://cloud.vast.ai/
+2. Click "Templates" → "Edit Image & Config"
+3. Enter custom Docker image:
+   ```
+   pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
+   ```
+4. Select an RTX 4090 instance
+5. Click "RENT"
+6. Note your **Instance ID** (e.g., 29170188)
+
+### Step 3: Enable Autostop
+
+In Vast.ai console, find your instance and set:
+- **Autostop**: 10 minutes (stops after 10 min idle)
+
+Or via CLI:
+```bash
+vastai set autostop 29170188 600  # 600 seconds = 10 minutes
+```
+
+### Step 4: SSH and Setup ComfyUI
+
+Open SSH/terminal to your instance:
 
 ```bash
-# Clone ComfyUI
+# Install ComfyUI
 cd /workspace
 git clone https://github.com/comfyanonymous/ComfyUI.git
 cd ComfyUI
-
-# Install dependencies
 pip install -r requirements.txt
 
-# Download FLUX Kontext Dev model
+# Download FLUX Kontext Dev model (~8GB)
 cd models/diffusion_models
-wget https://huggingface.co/Comfy-Org/flux1-kontext-dev_ComfyUI/resolve/main/split_files/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors
+wget -c "https://huggingface.co/Comfy-Org/flux1-kontext-dev_ComfyUI/resolve/main/split_files/diffusion_models/flux1-dev-kontext_fp8_scaled.safetensors"
 
 # Download VAE
 cd ../vae
-wget https://huggingface.co/Comfy-Org/Lumina_Image_2.0_Repackaged/resolve/main/split_files/vae/ae.safetensors
+wget -c "https://huggingface.co/Comfy-Org/Lumina_Image_2.0_Repackaged/resolve/main/split_files/vae/ae.safetensors"
 
 # Download Text Encoders
 cd ../text_encoders
-wget https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors
-wget https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn_scaled.safetensors
-
-# Go back to workspace
-cd /workspace
+wget -c "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors"
+wget -c "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp8_e4m3fn_scaled.safetensors"
 ```
 
-## Step 5: Setup Worker API
+### Step 5: Setup Worker API
 
 ```bash
-# Clone or upload your worker files
-mkdir -p /workspace/worker
+# Create worker directory
+mkdir -p /workspace/worker/workflows
 cd /workspace/worker
 
-# Create worker.py (paste the content)
-nano worker.py
-
-# Create comfyui_api.py (paste the content)
-nano comfyui_api.py
-
-# Create workflows folder
-mkdir workflows
-
-# Create workflow file
-nano workflows/flatlay_api.json
-
-# Install worker dependencies
+# Install dependencies
 pip install fastapi uvicorn httpx pymongo Pillow python-multipart
+
+# Download worker files from your GitHub repo
+# OR copy-paste the files manually using nano
 ```
 
-## Step 6: Create Startup Script
+### Step 6: Create Startup Script
 
 ```bash
-nano /workspace/start.sh
-```
-
-Paste:
-```bash
+cat > /workspace/onstart.sh << 'EOF'
 #!/bin/bash
 
-# Start ComfyUI in background
+# Start ComfyUI
 cd /workspace/ComfyUI
-python main.py --listen 0.0.0.0 --port 8188 &
+nohup python main.py --listen 0.0.0.0 --port 8188 &
 
 # Wait for ComfyUI
 sleep 30
@@ -94,56 +98,62 @@ sleep 30
 # Start Worker API
 cd /workspace/worker
 python -m uvicorn worker:app --host 0.0.0.0 --port 8000
+EOF
+
+chmod +x /workspace/onstart.sh
 ```
 
-Make executable:
-```bash
-chmod +x /workspace/start.sh
+### Step 7: Set Onstart Command
+
+In Vast.ai console:
+1. Click "Edit" on your instance
+2. Set **On-start Script**: `/workspace/onstart.sh`
+3. Save
+
+Now every time the instance starts, it auto-runs your worker!
+
+### Step 8: Update Vercel Environment
+
+Add to your Vercel project:
 ```
-
-## Step 7: Run the Worker
-
-```bash
-/workspace/start.sh
+VASTAI_API_KEY=your-api-key
+VASTAI_INSTANCE_ID=29170188
+GPU_WORKER_URL=http://YOUR_VAST_IP:8000
+API_SECRET=your-secret-key
 ```
-
-## Step 8: Get Your Worker URL
-
-Your worker URL is:
-```
-http://YOUR_VAST_IP:8000
-```
-
-Find YOUR_VAST_IP in the Vast.ai console (the public IP).
-
-## Step 9: Test It
-
-```bash
-curl http://YOUR_VAST_IP:8000/health
-```
-
-Should return: `{"status": "healthy", ...}`
 
 ---
 
-## Quick Reference
+## How Auto-Start Works
 
-| What | Where |
-|------|-------|
-| ComfyUI | http://YOUR_IP:8188 |
-| Worker API | http://YOUR_IP:8000 |
-| Health Check | http://YOUR_IP:8000/health |
+When a user generates, your Vercel API:
+1. Checks if GPU is running
+2. If not → Calls Vast.ai API to start
+3. Waits for worker to be healthy
+4. Sends the job
 
-## Troubleshooting
+The GPU auto-stops after 10 min idle. **No VPS or Render needed!**
 
-**ComfyUI not starting?**
-- Check VRAM: `nvidia-smi`
-- Check logs in terminal
+---
 
-**API not responding?**
-- Make sure port 8000 is open in Vast.ai dashboard
-- Check if uvicorn started
+## Your Costs
 
-**Models not loading?**
-- Verify files exist in correct folders
-- Check model file sizes (should be several GB)
+| Scenario | Cost |
+|----------|------|
+| GPU running | $0.315/hr |
+| GPU stopped (disk storage) | $0.365/day (~$11/month) |
+| No extra VPS | $0 |
+
+**Monthly estimate for 100-500 images: ~$15-20 total**
+
+---
+
+## Test It
+
+1. Stop your instance in Vast.ai console
+2. Go to your app and generate an image
+3. Watch the instance auto-start in Vast.ai console
+4. Image generates
+5. After 10 min, instance auto-stops
+
+🎉 **Automatic scaling, zero extra cost!**
