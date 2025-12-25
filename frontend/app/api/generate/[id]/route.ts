@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import connectDB from "@/lib/mongodb";
 import Job from "@/models/Job";
 import Generation from "@/models/Generation";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,7 @@ export async function GET(
     const { id } = await params;
     
     // Get user session
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -29,8 +30,8 @@ export async function GET(
 
     await connectDB();
 
-    // Find the generation
-    const generation = await Generation.findById(id).populate('jobId');
+    // Find the generation - use lean() to get fresh data
+    const generation = await Generation.findById(id).populate('jobId').lean();
     
     if (!generation) {
       return NextResponse.json(
@@ -47,6 +48,8 @@ export async function GET(
       createdAt: generation.createdAt,
     };
 
+    console.log(`📊 Poll status for ${id}: ${generation.status}`);
+
     if (generation.status === 'completed') {
       // Return image URL
       if (generation.generatedImageId) {
@@ -56,12 +59,14 @@ export async function GET(
       }
       response.executionTime = generation.generationTime;
     } else if (generation.status === 'failed' && generation.jobId) {
-      response.error = generation.jobId.error?.message || 'Generation failed';
+      const job = generation.jobId as any;
+      response.error = job.error?.message || 'Generation failed';
     } else if (generation.status === 'processing' && generation.jobId) {
-      // Include queue position estimate
+      // Include queue position estimate - only count jobs ahead of this one
+      const job = generation.jobId as any;
       const pendingCount = await Job.countDocuments({ 
         status: { $in: ['pending', 'processing'] },
-        createdAt: { $lt: generation.jobId.createdAt }
+        createdAt: { $lt: job.createdAt }
       });
       response.queuePosition = pendingCount + 1;
       response.estimatedWait = (pendingCount + 1) * 35; // ~35s per job
@@ -77,3 +82,4 @@ export async function GET(
     );
   }
 }
+
