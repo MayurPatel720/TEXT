@@ -36,6 +36,22 @@ const GenerationSchema = new mongoose.Schema({
     ref: 'Job', // Reference to the job queue
   },
   
+  // Upscaling support
+  upscaledImageId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'images.files', // GridFS collection for upscaled version
+  },
+  upscaleStatus: {
+    type: String,
+    enum: ['none', 'processing', 'completed', 'failed'],
+    default: 'none',
+  },
+  
+  // Output filename for upscaling reference
+  outputFilename: {
+    type: String,
+  },
+  
   // Backend source
   backend: {
     type: String,

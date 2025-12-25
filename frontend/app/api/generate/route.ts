@@ -30,7 +30,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { 
       image, 
+      image2,  // Second reference image (optional)
       prompt, 
+      negative_prompt,  // What to avoid
       style_strength, 
       structure_strength,
       num_variations,
@@ -38,7 +40,8 @@ export async function POST(request: NextRequest) {
       aspect_ratio,
       output_format,
       quality,
-      guidance 
+      guidance,
+      steps
     } = body;
 
     // Validate inputs
@@ -132,7 +135,9 @@ export async function POST(request: NextRequest) {
               body: JSON.stringify({
                 job_id: job._id.toString(),
                 image_base64: image.replace(/^data:image\/\w+;base64,/, ''),
+                image2_base64: image2 ? image2.replace(/^data:image\/\w+;base64,/, '') : undefined,
                 prompt: prompt,
+                negative_prompt: negative_prompt || "",
                 seed: seed ? seed + i : undefined,
                 // All UI parameters
                 style_strength: style_strength || 0.9,
@@ -141,7 +146,7 @@ export async function POST(request: NextRequest) {
                 quality: quality || 90,
                 aspect_ratio: aspect_ratio || "1:1",
                 output_format: output_format || "png",
-                steps: 25,
+                steps: steps || 25,
                 webhook_url: `${WEBHOOK_BASE_URL}/api/webhook/comfyui`,
               }),
             });

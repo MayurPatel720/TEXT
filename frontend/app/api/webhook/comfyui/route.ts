@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { job_id, success, image_base64, execution_time, error } = body;
-    console.log("📦 Webhook body:", { job_id, success, hasImage: !!image_base64, execution_time, error });
+    const { job_id, success, image_base64, execution_time, error, is_upscale } = body;
+    console.log("📦 Webhook body:", { job_id, success, hasImage: !!image_base64, execution_time, error, is_upscale });
 
     if (!job_id) {
       return NextResponse.json(
@@ -64,35 +64,46 @@ export async function POST(request: NextRequest) {
 
     if (success && image_base64) {
       // Upload image to GridFS
+      const imagePrefix = is_upscale ? 'upscaled_' : 'generation_';
       const imageId = await uploadImage(
         image_base64,
-        `generation_${generation._id}.png`,
+        `${imagePrefix}${generation._id}.png`,
         {
           userId: generation.userId,
           generationId: generation._id,
           jobId: job._id,
+          isUpscale: is_upscale || false,
         }
       );
 
-      // Update job as completed
-      job.status = 'completed';
-      job.output = {
-        imageId: imageId,
-      };
-      job.execution = {
-        ...job.execution,
-        completedAt: new Date(),
-        executionTime: execution_time,
-      };
-      await job.save();
+      if (is_upscale) {
+        // Upscale callback - update upscaled image
+        generation.upscaledImageId = imageId;
+        generation.upscaleStatus = 'completed';
+        await generation.save();
+        
+        console.log(`🔍 Upscale ${generation._id} completed`);
+      } else {
+        // Normal generation callback
+        job.status = 'completed';
+        job.output = {
+          imageId: imageId,
+        };
+        job.execution = {
+          ...job.execution,
+          completedAt: new Date(),
+          executionTime: execution_time,
+        };
+        await job.save();
 
-      // Update generation
-      generation.status = 'completed';
-      generation.generatedImageId = imageId;
-      generation.generationTime = execution_time;
-      await generation.save();
+        // Update generation
+        generation.status = 'completed';
+        generation.generatedImageId = imageId;
+        generation.generationTime = execution_time;
+        await generation.save();
 
-      console.log(`✅ Generation ${generation._id} completed in ${execution_time}s`);
+        console.log(`✅ Generation ${generation._id} completed in ${execution_time}s`);
+      }
 
     } else {
       // Mark as failed

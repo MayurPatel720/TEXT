@@ -58,6 +58,12 @@ export async function GET(
         response.imageUrl = generation.generatedImageUrl;
       }
       response.executionTime = generation.generationTime;
+      
+      // Upscale info
+      response.upscaleStatus = generation.upscaleStatus || 'none';
+      if (generation.upscaledImageId) {
+        response.upscaledImageUrl = `/api/images/${generation.upscaledImageId}`;
+      }
     } else if (generation.status === 'failed' && generation.jobId) {
       const job = generation.jobId as any;
       response.error = job.error?.message || 'Generation failed';
