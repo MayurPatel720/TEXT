@@ -30,7 +30,7 @@ export async function GET(
     const imageData = await downloadImage(id);
 
     // Return image with proper headers
-    return new NextResponse(imageData, {
+    return new NextResponse(new Uint8Array(imageData), {
       headers: {
         "Content-Type": info.metadata?.contentType || "image/png",
         "Content-Length": imageData.length.toString(),
