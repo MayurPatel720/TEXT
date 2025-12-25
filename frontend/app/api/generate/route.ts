@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { cookies } from "next/headers";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Job from "@/models/Job";
@@ -12,10 +13,17 @@ export const dynamic = 'force-dynamic';
 const API_SECRET = process.env.API_SECRET || "your-secret-key";
 const WEBHOOK_BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
+// Auth options for getServerSession
+const authOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
+};
+
 export async function POST(request: NextRequest) {
   try {
-    // Get user session
-    const session = await getServerSession();
+    // Get user session - use cookies header for server-side auth
+    const session = await getServerSession(authOptions);
+    
+    console.log("🔐 Generate API - Session:", session ? "Found" : "Not found", session?.user?.email);
     
     if (!session?.user?.email) {
       return NextResponse.json(
