@@ -15,10 +15,14 @@ const API_SECRET = process.env.API_SECRET || "your-secret-key";
  */
 export async function POST(request: NextRequest) {
   try {
+    console.log("📥 Webhook received!");
+    
     // Verify webhook secret
     const secret = request.headers.get("X-API-Secret");
+    console.log("🔐 Secret check:", secret ? "provided" : "missing", "Expected:", API_SECRET.substring(0, 5) + "...");
+    
     if (secret !== API_SECRET) {
-      console.warn("Webhook called with invalid secret");
+      console.warn("❌ Webhook called with invalid secret:", secret?.substring(0, 10));
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -27,6 +31,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { job_id, success, image_base64, execution_time, error } = body;
+    console.log("📦 Webhook body:", { job_id, success, hasImage: !!image_base64, execution_time, error });
 
     if (!job_id) {
       return NextResponse.json(
