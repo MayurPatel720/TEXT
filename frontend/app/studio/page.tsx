@@ -23,7 +23,9 @@ import {
   Info,
   Menu,
   GripVertical,
-  AlertCircle
+  AlertCircle,
+  User,
+  Grid3X3
 } from "lucide-react";
 import Image from "next/image";
 import { Header } from "@/components/layout";
@@ -941,11 +943,48 @@ export default function StudioPage() {
                     fill
                     className="object-contain"
                   />
+                  {/* Seed badge */}
                   {selectedVariation.seed && (
                     <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 text-xs text-white/80 backdrop-blur-sm">
                       Seed: #{selectedVariation.seed}
                     </div>
                   )}
+                  
+                  {/* Quick Action Buttons */}
+                  <div className="absolute bottom-4 right-4 flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Use this image for model mockup
+                        const imageUrl = selectedVariation.url || selectedVariation.imageUrl || "";
+                        setReferenceImages([{ id: 'mockup-ref', url: imageUrl, file: null as any }]);
+                        setSelectedRefImage('mockup-ref');
+                        setSelectedWorkflow(WORKFLOWS.find(w => w.id === 'model_mockup')!);
+                        setPrompt(WORKFLOWS.find(w => w.id === 'model_mockup')?.promptTemplate || "");
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-[#10B981]/80 hover:bg-[#10B981] text-white text-xs font-medium backdrop-blur-sm transition-all flex items-center gap-1.5"
+                      title="Generate model wearing this design"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      Put on Model
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Use this image for pattern extraction
+                        const imageUrl = selectedVariation.url || selectedVariation.imageUrl || "";
+                        setReferenceImages([{ id: 'extract-ref', url: imageUrl, file: null as any }]);
+                        setSelectedRefImage('extract-ref');
+                        setSelectedWorkflow(WORKFLOWS.find(w => w.id === 'extract_pattern')!);
+                        setPrompt(WORKFLOWS.find(w => w.id === 'extract_pattern')?.promptTemplate || "");
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-[#6366F1]/80 hover:bg-[#6366F1] text-white text-xs font-medium backdrop-blur-sm transition-all flex items-center gap-1.5"
+                      title="Extract flat tileable pattern"
+                    >
+                      <Grid3X3 className="w-3.5 h-3.5" />
+                      Extract Pattern
+                    </button>
+                  </div>
                 </div>
               ) : currentRefImage ? (
                 <div className="relative w-full h-full">
