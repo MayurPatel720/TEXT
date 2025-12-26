@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
       output_format,
       quality,
       guidance,
-      steps
+      steps,
+      workflow_type  // NEW: Which workflow to use
     } = body;
 
     // Validate inputs
@@ -147,6 +148,7 @@ export async function POST(request: NextRequest) {
                 aspect_ratio: aspect_ratio || "1:1",
                 output_format: output_format || "png",
                 steps: steps || 25,
+                workflow_type: workflow_type || "creative_edit",  // NEW
                 webhook_url: `${WEBHOOK_BASE_URL}/api/webhook/comfyui`,
               }),
             });

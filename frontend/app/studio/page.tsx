@@ -28,6 +28,7 @@ import {
 import Image from "next/image";
 import { Header } from "@/components/layout";
 import { GenerationProgress } from "@/components/GenerationProgress";
+import WorkflowSelector, { WORKFLOWS, Workflow } from "@/components/WorkflowSelector";
 
 interface Variation {
   id: string;
@@ -145,6 +146,7 @@ export default function StudioPage() {
   const [guidance, setGuidance] = useState(2.5);
   const [negativePrompt, setNegativePrompt] = useState("");
   const [steps, setSteps] = useState(25);
+  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow>(WORKFLOWS[0]);
 
   // Collapsible sections
   const [showImageGuidance, setShowImageGuidance] = useState(true);
@@ -377,7 +379,8 @@ export default function StudioPage() {
           output_format: outputFormat,
           quality: quality,
           guidance: guidance,
-          steps: steps
+          steps: steps,
+          workflow_type: selectedWorkflow.id,
         })
       });
 
@@ -411,7 +414,7 @@ export default function StudioPage() {
       setError(err.message || "Something went wrong");
       setStatus("error");
     }
-  }, [getCurrentRefImageUrl, prompt, negativePrompt, styleStrength, structureStrength, numVariations, seed, aspectRatio, outputFormat, quality, guidance, steps, referenceImages, selectedRefImage, startPolling]);
+  }, [getCurrentRefImageUrl, prompt, negativePrompt, styleStrength, structureStrength, numVariations, seed, aspectRatio, outputFormat, quality, guidance, steps, referenceImages, selectedRefImage, selectedWorkflow, startPolling]);
 
   // Toggle selection
   const toggleSelection = useCallback((id: string) => {
@@ -553,6 +556,27 @@ export default function StudioPage() {
               )}
               
               <div className="flex-1 overflow-y-auto scrollbar-thin">
+            {/* Workflow Selector */}
+            <div className="p-4 border-b border-white/5">
+              <WorkflowSelector 
+                selected={selectedWorkflow.id}
+                onSelect={(workflow) => {
+                  setSelectedWorkflow(workflow);
+                  // Set prompt template when workflow changes
+                  if (workflow.promptTemplate && !prompt) {
+                    setPrompt(workflow.promptTemplate);
+                  }
+                }}
+              />
+              {/* Show input requirement */}
+              <p className="text-xs text-white/40 mt-2 flex items-center gap-1">
+                <Info className="w-3 h-3" />
+                {selectedWorkflow.inputs === 2 
+                  ? "Upload 2 images for this workflow" 
+                  : "Upload 1 image for this workflow"}
+              </p>
+            </div>
+
             {/* Prompt Section */}
             <div className="p-4 border-b border-white/5">
               <label className="flex items-center gap-2 text-sm font-medium mb-3 text-white/90">
@@ -562,10 +586,20 @@ export default function StudioPage() {
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Describe your textile design..."
+                placeholder={selectedWorkflow.promptTemplate || "Describe your textile design..."}
                 className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-3 text-sm text-white placeholder-white/30 resize-none focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
                 rows={3}
               />
+              {/* Use Template Button */}
+              {selectedWorkflow.promptTemplate && (
+                <button
+                  onClick={() => setPrompt(selectedWorkflow.promptTemplate)}
+                  className="mt-2 text-xs text-[var(--accent)] hover:text-[var(--accent)]/80 flex items-center gap-1"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Use template for {selectedWorkflow.name}
+                </button>
+              )}
               <div className="mt-2.5 flex flex-wrap gap-1.5">
                 {["Seamless", "Floral", "Geometric", "Abstract"].map(tag => (
                   <button
