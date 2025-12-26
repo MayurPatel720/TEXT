@@ -325,9 +325,70 @@ def build_change_material(image1, image2, prompt, negative_prompt, seed, steps, 
 # =============================================================================
 
 def build_merge_images(image1, image2, prompt, negative_prompt, seed, steps, guidance, structure_strength, width, height, job_id):
-    """Merge two images into one composition (person + car, etc)"""
-    # Same as apply_pattern but optimized for scene merging
-    return build_apply_pattern(image1, image2, prompt, negative_prompt, seed, steps, guidance, structure_strength, width, height, job_id)
+    """Merge two images - put garment from image2 onto person from image1
+    
+    Key difference from apply_pattern:
+    - Uses IMAGE1 (person) as base latent with partial denoise
+    - This PRESERVES the person while changing their clothes
+    """
+    # Higher guidance for better instruction following
+    guidance = max(guidance, 3.5)
+    
+    # Partial denoise to preserve person structure while changing clothes
+    # 0.85 denoise = keep person pose/face, change clothes
+    denoise = 0.85
+    
+    workflow = get_model_loaders()
+    workflow.update(get_text_encoding(prompt, negative_prompt))
+    
+    # Load both images
+    workflow["142"] = {"class_type": "LoadImage", "inputs": {"image": image1}}  # Person
+    if image2:
+        workflow["147"] = {"class_type": "LoadImage", "inputs": {"image": image2}}  # Garment
+        workflow["146"] = {"class_type": "ImageStitch", "inputs": {
+            "image1": ["142", 0], "image2": ["147", 0],
+            "direction": "right", "match_image_size": True,
+            "feathering": 0, "spacing_width": 0, "spacing_color": "white"
+        }}
+        ref_source = ["146", 0]
+    else:
+        ref_source = ["142", 0]
+    
+    workflow.update({
+        # Scale stitched reference
+        "42": {"class_type": "FluxKontextImageScale", "inputs": {"image": ref_source}},
+        "124": {"class_type": "VAEEncode", "inputs": {"pixels": ["42", 0], "vae": ["39", 0]}},
+        
+        # Also encode JUST the person image for base latent
+        "person_scale": {"class_type": "FluxKontextImageScale", "inputs": {"image": ["142", 0]}},
+        "person_latent": {"class_type": "VAEEncode", "inputs": {"pixels": ["person_scale", 0], "vae": ["39", 0]}},
+        
+        # ReferenceLatent uses the STITCHED image for conditioning
+        "177": {"class_type": "ReferenceLatent", "inputs": {
+            "conditioning": ["6", 0], "latent": ["124", 0]
+        }},
+        "35": {"class_type": "FluxGuidance", "inputs": {
+            "conditioning": ["177", 0], "guidance": guidance
+        }},
+        
+        # KSampler uses PERSON latent as base (not empty!)
+        # This preserves person while applying the garment
+        "31": {"class_type": "KSampler", "inputs": {
+            "model": ["37", 0],
+            "positive": ["35", 0],
+            "negative": ["135", 0],
+            "latent_image": ["person_latent", 0],  # Person as base!
+            "seed": seed, "steps": steps, "cfg": 1,
+            "sampler_name": "euler", "scheduler": "simple",
+            "denoise": denoise  # Partial denoise preserves person
+        }},
+        
+        "8": {"class_type": "VAEDecode", "inputs": {"samples": ["31", 0], "vae": ["39", 0]}},
+        "136": {"class_type": "SaveImage", "inputs": {
+            "images": ["8", 0], "filename_prefix": f"merge_{job_id}"
+        }}
+    })
+    return workflow
 
 # =============================================================================
 # WORKFLOW 4: MODEL MOCKUP (design → on model for Instagram)
