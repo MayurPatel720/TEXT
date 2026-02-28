@@ -1,15 +1,43 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
+import { emailService } from "@/lib/email";
+import { 
+  checkRateLimit, 
+  getClientIp, 
+  rateLimitPresets, 
+  createRateLimitResponse 
+} from "@/lib/rate-limit";
 
-// Store password reset tokens temporarily (also saved in DB)
-const resetTokens = new Map<string, { email: string; expires: number }>();
+// ============================================================================
+// Password Reset Request Handler
+// ============================================================================
 
 export async function POST(request: Request) {
   try {
-    const { email } = await request.json();
+    // Rate limiting
+    const clientIp = getClientIp(request);
+    const rateLimitResult = checkRateLimit(
+      `forgot-password:${clientIp}`,
+      rateLimitPresets.passwordReset
+    );
+
+    if (!rateLimitResult.success) {
+      return createRateLimitResponse(rateLimitResult);
+    }
+
+    // Validate request body
+    let email: string;
+    try {
+      const body = await request.json();
+      email = body.email?.trim()?.toLowerCase();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 }
+      );
+    }
 
     if (!email) {
       return NextResponse.json(
@@ -18,32 +46,45 @@ export async function POST(request: Request) {
       );
     }
 
-    // Connect to database and verify user exists
-    await connectDB();
-    const user = await User.findOne({ email: email.toLowerCase() });
-    
-    // If email is not registered, tell the user
-    if (!user) {
-      console.log('❌ Password reset requested for unregistered email:', email);
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: "This email is not registered with us. Please check the email or create a new account." },
-        { status: 404 }
+        { error: "Please enter a valid email address" },
+        { status: 400 }
       );
     }
 
-    // Generate reset token
+    // Connect to database and verify user exists
+    await connectDB();
+    const user = await User.findOne({ email });
+
+    // Security: Don't reveal if email exists or not in production
+    // But in development, provide helpful feedback
+    if (!user) {
+      if (process.env.NODE_ENV === 'development') {
+        return NextResponse.json(
+          { error: "This email is not registered. Please check the email or create a new account." },
+          { status: 404 }
+        );
+      }
+      // In production, always return success to prevent email enumeration
+      return NextResponse.json({
+        message: "If an account exists with this email, you will receive a password reset link shortly."
+      });
+    }
+
+    // Generate secure reset token
     const token = crypto.randomBytes(32).toString("hex");
     const expires = Date.now() + 3600000; // 1 hour
 
-    // Store token in memory (for quick lookup) and in user document
-    resetTokens.set(token, { email: email.toLowerCase(), expires });
-    
-    // Update user with reset token
+    // Store token in user document (DB-only, no in-memory for serverless compatibility)
     await User.updateOne(
-      { email: email.toLowerCase() },
-      { 
+      { email },
+      {
         resetPasswordToken: token,
-        resetPasswordExpires: new Date(expires)
+        resetPasswordExpires: new Date(expires),
+        updatedAt: new Date(),
       }
     );
 
@@ -51,124 +92,36 @@ export async function POST(request: Request) {
     const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     const resetLink = `${baseUrl}/reset-password?token=${token}`;
 
-    // Always log the reset link for debugging
-    console.log('\n========================================');
-    console.log('🔑 PASSWORD RESET LINK (for debugging):');
-    console.log(resetLink);
-    console.log('========================================\n');
+    // Send password reset email
+    const emailResult = await emailService.sendPasswordResetEmail(email, resetLink);
 
-    // Check if email is configured
-    const emailUser = process.env.EMAIL_USER;
-    const emailPass = process.env.EMAIL_PASS;
-    const emailHost = process.env.EMAIL_HOST || 'smtp.gmail.com';
-    const emailPort = parseInt(process.env.EMAIL_PORT || '587');
+    if (!emailResult.success && emailService.isEmailConfigured()) {
+      // Email was configured but failed to send
+      console.error("Failed to send password reset email:", emailResult.error);
+      return NextResponse.json(
+        { error: "Failed to send email. Please try again later." },
+        { status: 500 }
+      );
+    }
 
-    if (emailUser && emailPass) {
-      // Send actual email
-      const transporter = nodemailer.createTransport({
-        host: emailHost,
-        port: emailPort,
-        secure: emailPort === 465,
-        auth: {
-          user: emailUser,
-          pass: emailPass,
-        },
-      });
-
-      const mailOptions = {
-        from: `"Textile AI" <${emailUser}>`,
-        to: email,
-        subject: "Reset Your Password - Textile AI",
-        html: `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          </head>
-          <body style="margin: 0; padding: 0; background-color: #0a0a0a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0a0a0a; padding: 40px 20px;">
-              <tr>
-                <td align="center">
-                  <table width="100%" max-width="500" cellpadding="0" cellspacing="0" style="background-color: #111111; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
-                    <!-- Header -->
-                    <tr>
-                      <td style="padding: 32px 32px 24px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                        <h1 style="margin: 0; color: #0066FF; font-size: 24px; font-weight: 700;">Textile AI</h1>
-                      </td>
-                    </tr>
-                    
-                    <!-- Content -->
-                    <tr>
-                      <td style="padding: 32px;">
-                        <h2 style="margin: 0 0 16px; color: #ffffff; font-size: 20px; font-weight: 600;">Reset Your Password</h2>
-                        <p style="margin: 0 0 24px; color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1.6;">
-                          We received a request to reset your password. Click the button below to create a new password.
-                        </p>
-                        
-                        <!-- Button -->
-                        <table width="100%" cellpadding="0" cellspacing="0">
-                          <tr>
-                            <td align="center" style="padding: 8px 0 24px;">
-                              <a href="${resetLink}" style="display: inline-block; background: linear-gradient(135deg, #0066FF 0%, #0052cc 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 12px; font-size: 14px; font-weight: 600;">
-                                Reset Password
-                              </a>
-                            </td>
-                          </tr>
-                        </table>
-                        
-                        <p style="margin: 0 0 16px; color: rgba(255,255,255,0.5); font-size: 12px; line-height: 1.6;">
-                          This link will expire in 1 hour. If you didn't request this reset, you can safely ignore this email.
-                        </p>
-                        
-                        <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 11px; word-break: break-all;">
-                          If the button doesn't work, copy this link:<br>
-                          <a href="${resetLink}" style="color: #0066FF;">${resetLink}</a>
-                        </p>
-                      </td>
-                    </tr>
-                    
-                    <!-- Footer -->
-                    <tr>
-                      <td style="padding: 24px 32px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1);">
-                        <p style="margin: 0; color: rgba(255,255,255,0.4); font-size: 11px;">
-                          © ${new Date().getFullYear()} Textile AI. All rights reserved.
-                        </p>
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
-            </table>
-          </body>
-          </html>
-        `,
-        text: `Reset Your Password\n\nWe received a request to reset your password. Click the link below to create a new password:\n\n${resetLink}\n\nThis link will expire in 1 hour. If you didn't request this reset, you can safely ignore this email.\n\n© ${new Date().getFullYear()} Textile AI`
-      };
-
-      await transporter.sendMail(mailOptions);
-      console.log("✅ Password reset email sent to:", email);
-
+    // Return appropriate response
+    if (!emailService.isEmailConfigured() && process.env.NODE_ENV === 'development') {
+      // Development mode without email config
       return NextResponse.json({
-        message: "Password reset link has been sent to your email."
-      });
-    } else {
-      // Email not configured - return link for development
-      console.log("⚠️ Email not configured. Reset link:", resetLink);
-      
-      return NextResponse.json({
-        message: "Password reset link sent to your email",
-        // Only show link in development when email is not configured
-        ...(process.env.NODE_ENV === 'development' && { 
-          devNote: "Email not configured - showing link for development only",
-          resetLink 
-        })
+        message: "Password reset link generated",
+        devNote: "Email not configured - showing link for development only",
+        resetLink,
       });
     }
+
+    return NextResponse.json({
+      message: "If an account exists with this email, you will receive a password reset link shortly."
+    });
+
   } catch (error) {
     console.error("Forgot password error:", error);
     return NextResponse.json(
-      { error: "Failed to process request. Please try again." },
+      { error: "An unexpected error occurred. Please try again." },
       { status: 500 }
     );
   }

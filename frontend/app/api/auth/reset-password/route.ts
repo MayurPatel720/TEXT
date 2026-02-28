@@ -2,16 +2,78 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitPresets,
+  createRateLimitResponse,
+} from "@/lib/rate-limit";
 
-// GET - Verify token validity
+// ============================================================================
+// Password Validation Constants
+// ============================================================================
+
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_REQUIREMENTS = {
+  minLength: PASSWORD_MIN_LENGTH,
+  requireUppercase: true,
+  requireLowercase: true,
+  requireNumber: true,
+};
+
+/**
+ * Validate password strength
+ */
+function validatePassword(password: string): { valid: boolean; error?: string } {
+  if (!password || password.length < PASSWORD_REQUIREMENTS.minLength) {
+    return { 
+      valid: false, 
+      error: `Password must be at least ${PASSWORD_REQUIREMENTS.minLength} characters` 
+    };
+  }
+  
+  if (PASSWORD_REQUIREMENTS.requireUppercase && !/[A-Z]/.test(password)) {
+    return { 
+      valid: false, 
+      error: "Password must contain at least one uppercase letter" 
+    };
+  }
+  
+  if (PASSWORD_REQUIREMENTS.requireLowercase && !/[a-z]/.test(password)) {
+    return { 
+      valid: false, 
+      error: "Password must contain at least one lowercase letter" 
+    };
+  }
+  
+  if (PASSWORD_REQUIREMENTS.requireNumber && !/[0-9]/.test(password)) {
+    return { 
+      valid: false, 
+      error: "Password must contain at least one number" 
+    };
+  }
+  
+  return { valid: true };
+}
+
+// ============================================================================
+// GET - Verify Token Validity
+// ============================================================================
+
 export async function GET(request: NextRequest) {
   try {
-    const token = request.nextUrl.searchParams.get("token");
+    // Rate limiting
+    const clientIp = getClientIp(request);
+    const rateLimitResult = checkRateLimit(
+      `reset-password-verify:${clientIp}`,
+      rateLimitPresets.tokenValidation
+    );
 
-    console.log('\n========================================');
-    console.log('🔍 VERIFYING RESET TOKEN');
-    console.log('Token:', token?.substring(0, 20) + '...');
-    console.log('========================================\n');
+    if (!rateLimitResult.success) {
+      return createRateLimitResponse(rateLimitResult);
+    }
+
+    const token = request.nextUrl.searchParams.get("token");
 
     if (!token) {
       return NextResponse.json(
@@ -20,26 +82,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    await connectDB();
-
-    // First, let's see if this token exists at all
-    const userWithToken = await User.findOne({
-      resetPasswordToken: token,
-    });
-
-    console.log('User with this token found:', userWithToken ? 'YES' : 'NO');
-    
-    if (userWithToken) {
-      console.log('Token expires:', userWithToken.resetPasswordExpires);
-      console.log('Current time:', new Date());
-      console.log('Is expired:', userWithToken.resetPasswordExpires < new Date());
+    // Validate token format (should be 64 hex chars for 32 bytes)
+    if (!/^[a-f0-9]{64}$/i.test(token)) {
+      return NextResponse.json(
+        { valid: false, error: "Invalid token format" },
+        { status: 400 }
+      );
     }
+
+    await connectDB();
 
     // Find user with valid reset token
     const user = await User.findOne({
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: new Date() },
-    });
+    }).select('email resetPasswordExpires');
 
     if (!user) {
       return NextResponse.json(
@@ -58,10 +115,37 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Reset password with token
+// ============================================================================
+// POST - Reset Password with Token
+// ============================================================================
+
 export async function POST(request: Request) {
   try {
-    const { token, password } = await request.json();
+    // Rate limiting
+    const clientIp = getClientIp(request);
+    const rateLimitResult = checkRateLimit(
+      `reset-password:${clientIp}`,
+      rateLimitPresets.login // Using login preset as it's a sensitive operation
+    );
+
+    if (!rateLimitResult.success) {
+      return createRateLimitResponse(rateLimitResult);
+    }
+
+    // Parse and validate request body
+    let token: string;
+    let password: string;
+
+    try {
+      const body = await request.json();
+      token = body.token?.trim();
+      password = body.password;
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 }
+      );
+    }
 
     if (!token || !password) {
       return NextResponse.json(
@@ -70,10 +154,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate password strength
-    if (password.length < 8) {
+    // Validate token format
+    if (!/^[a-f0-9]{64}$/i.test(token)) {
       return NextResponse.json(
-        { error: "Password must be at least 8 characters" },
+        { error: "Invalid reset link. Please request a new one." },
+        { status: 400 }
+      );
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return NextResponse.json(
+        { error: passwordValidation.error },
         { status: 400 }
       );
     }
@@ -93,7 +186,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Hash new password
+    // Hash new password with high cost factor
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Update user's password and clear reset token
@@ -107,7 +200,8 @@ export async function POST(request: Request) {
       }
     );
 
-    console.log(`✅ Password reset successful for: ${user.email}`);
+    // Log success (email only for audit, no PII exposure)
+    console.log(`✅ Password reset successful for user ID: ${user._id}`);
 
     return NextResponse.json({
       message: "Password has been reset successfully",

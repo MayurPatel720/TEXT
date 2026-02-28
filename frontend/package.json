@@ -28,6 +28,7 @@
     "next": "^14.2.35",
     "next-auth": "^4.24.13",
     "nodemailer": "^7.0.12",
+    "otpauth": "^9.4.1",
     "razorpay": "^2.9.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

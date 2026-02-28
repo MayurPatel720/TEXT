@@ -6,6 +6,8 @@ declare module "next-auth" {
       id: string;
       credits: number;
       plan: string;
+      role: string;
+      requires2FA?: boolean;
     } & DefaultSession["user"]
   }
 
@@ -13,6 +15,8 @@ declare module "next-auth" {
     id: string;
     credits: number;
     plan: string;
+    role?: string;
+    requires2FA?: boolean;
   }
 }
 
@@ -21,5 +25,7 @@ declare module "next-auth/jwt" {
     id: string;
     credits: number;
     plan: string;
+    role?: string;
+    requires2FA?: boolean;
   }
 }

@@ -8,6 +8,7 @@ import { Header, Footer } from "@/components/layout";
 import { useRouter } from "next/navigation";
 import { useTransition } from "@/context/TransitionContext";
 import { PricingSection } from "@/components/PricingSection";
+import ServicesSection from "./ServiceSection";
 
 
 export default function HomePage() {
@@ -130,7 +131,6 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
-
       {/* Features Section */}
       <section id="features" className="py-12 md:py-20 px-4 sm:px-6 relative z-10">
         <div className="max-w-7xl mx-auto">
@@ -215,6 +215,145 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* BYOG Section - Prominent Explainer */}
+      <section className="py-20 px-4 sm:px-6 relative z-10 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          {/* Background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/5 via-transparent to-purple-500/5 rounded-3xl"></div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+            className="relative border border-white/10 rounded-3xl p-8 md:p-12 lg:p-16 bg-gradient-to-br from-[#0A0A0A] to-[#111111]"
+          >
+            {/* Glow effect */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[var(--accent)]/20 rounded-full blur-[120px] opacity-50"></div>
+            
+            <div className="relative z-10">
+              {/* Badge */}
+              <motion.div 
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 mb-6"
+                initial={{ scale: 0.9, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                viewport={{ once: true }}
+              >
+                <svg className="w-4 h-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                </svg>
+                <span className="text-sm font-medium text-[var(--accent)]">New: Bring Your Own GPU</span>
+              </motion.div>
+
+              <motion.h2 
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+              >
+                <span className="bg-gradient-to-r from-white via-white to-gray-400 bg-clip-text text-transparent">
+                  Pay Only for GPU Time.
+                  <br />
+                  Keep 100% Control.
+                </span>
+              </motion.h2>
+
+              <motion.p 
+                className="text-lg md:text-xl text-gray-400 mb-12 max-w-3xl"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+              >
+                Rent a high-performance GPU on Vast.ai, we handle the setup automatically. 
+                Unlimited generations, zero platform fees, complete transparency.
+              </motion.p>
+
+              {/* Benefits Grid */}
+              <div className="grid md:grid-cols-3 gap-6 mb-12">
+                <BenefitCard
+                  icon={
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  }
+                  title="Lower Costs"
+                  description="RTX 4090 from $0.29/hour. Generate unlimited designs without per-image fees."
+                  delay={0.3}
+                />
+                <BenefitCard
+                  icon={
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  }
+                  title="Auto-Setup"
+                  description="Select GPU, click rent. We install ComfyUI + models in 5-10 minutes. Zero manual work."
+                  delay={0.4}
+                />
+                <BenefitCard
+                  icon={
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  }
+                  title="Full Control"
+                  description="Your GPU, your account. Start, stop, upgrade anytime. Total transparency."
+                  delay={0.5}
+                />
+              </div>
+
+              {/* CTA Buttons */}
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.6 }}
+              >
+                <button
+                  onClick={() => triggerTransition(() => router.push("/gpu-marketplace"))}
+                  className="btn btn-primary btn-lg group"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                  </svg>
+                  Browse GPUs
+                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                </button>
+
+                <Link href="#pricing" className="btn btn-secondary btn-lg">
+                  Compare Pricing
+                </Link>
+              </motion.div>
+
+              {/* Stats */}
+              <motion.div 
+                className="mt-12 pt-8 border-t border-white/10 grid grid-cols-3 gap-6"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.7 }}
+              >
+                <div>
+                  <div className="text-2xl md:text-3xl font-bold text-white mb-1">$0.29/hr</div>
+                  <div className="text-sm text-gray-500">GPU Starting Price</div>
+                </div>
+                <div>
+                  <div className="text-2xl md:text-3xl font-bold text-white mb-1">5-10min</div>
+                  <div className="text-sm text-gray-500">Auto Setup Time</div>
+                </div>
+                <div>
+                  <div className="text-2xl md:text-3xl font-bold text-white mb-1">Unlimited</div>
+                  <div className="text-sm text-gray-500">Generations</div>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <PricingSection />
 
@@ -272,6 +411,26 @@ function ShowcaseCard({ title, description, gradient, icon }: { title: string; d
       
       {/* Hover Glow */}
       <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-white/5 blur-3xl rounded-full group-hover:bg-white/10 transition-colors duration-500 pointer-events-none" />
+    </motion.div>
+  );
+}
+
+function BenefitCard({ icon, title, description, delay }: { icon: React.ReactNode; title: string; description: string; delay: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay, duration: 0.5 }}
+      className="group"
+    >
+      <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-[var(--accent)]/30 transition-all duration-300">
+        <div className="w-12 h-12 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)] mb-4 group-hover:scale-110 transition-transform">
+          {icon}
+        </div>
+        <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
+        <p className="text-sm text-gray-400 leading-relaxed">{description}</p>
+      </div>
     </motion.div>
   );
 }
