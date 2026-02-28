@@ -2,10 +2,10 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Upload, 
-  Sparkles, 
-  Download, 
+import {
+  Upload,
+  Sparkles,
+  Download,
   RefreshCw,
   Check,
   X,
@@ -25,9 +25,11 @@ import {
   GripVertical,
   AlertCircle,
   User,
-  Grid3X3
+  Grid3X3,
+  Share2
 } from "lucide-react";
 import Image from "next/image";
+import toast from "react-hot-toast";
 import { Header } from "@/components/layout";
 import { GenerationProgress } from "@/components/GenerationProgress";
 import WorkflowSelector, { WORKFLOWS, Workflow } from "@/components/WorkflowSelector";
@@ -49,11 +51,11 @@ interface ReferenceImage {
 type GenerationStatus = "idle" | "uploading" | "generating" | "complete" | "error";
 
 // Custom Slider Component with proper drag support
-const Slider = ({ 
-  value, 
-  onChange, 
-  min = 0, 
-  max = 1, 
+const Slider = ({
+  value,
+  onChange,
+  min = 0,
+  max = 1,
   step = 0.01,
   label,
   displayValue,
@@ -69,7 +71,7 @@ const Slider = ({
   helpText?: string;
 }) => {
   const percentage = ((value - min) / (max - min)) * 100;
-  
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -88,7 +90,7 @@ const Slider = ({
       </div>
       <div className="relative h-6 flex items-center">
         <div className="absolute inset-x-0 h-2 bg-white/10 rounded-full overflow-hidden">
-          <div 
+          <div
             className="h-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent)]/70 rounded-full transition-all duration-75"
             style={{ width: `${percentage}%` }}
           />
@@ -103,7 +105,7 @@ const Slider = ({
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           style={{ WebkitAppearance: 'none' }}
         />
-        <div 
+        <div
           className="absolute w-4 h-4 bg-white rounded-full shadow-lg shadow-black/30 border-2 border-[var(--accent)] pointer-events-none transition-all duration-75"
           style={{ left: `calc(${percentage}% - 8px)` }}
         />
@@ -123,14 +125,35 @@ const InfoTooltip = ({ text }: { text: string }) => (
 );
 
 export default function StudioPage() {
+  // Generation polling state
+  const [generationJobs, setGenerationJobs] = useState<{
+    id: string;
+    status: "pending" | "processing" | "completed" | "failed";
+    imageUrl?: string;
+    error?: string;
+    queuePosition?: number;
+    estimatedWait?: number;
+  }[]>([]);
+
   // Core state
   const [referenceImages, setReferenceImages] = useState<ReferenceImage[]>([]);
   const [selectedRefImage, setSelectedRefImage] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
-  const [status, setStatus] = useState<GenerationStatus>("idle");
-  const [progress, setProgress] = useState(0);
-  const [variations, setVariations] = useState<Variation[]>([]);
-  const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
+  const [status, setStatus] = useState<GenerationStatus>("complete"); // START AS COMPLETE FOR MOCK
+  const [progress, setProgress] = useState(100); // START AS FULL FOR MOCK
+
+  // MOCK DATA FOR TESTING WATERMARK
+  const MOCK_IMAGE_URL = "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=2787&auto=format&fit=crop";
+  const [variations, setVariations] = useState<Variation[]>([
+    { id: "mock-1", url: MOCK_IMAGE_URL, imageUrl: MOCK_IMAGE_URL, status: "completed", seed: 12345 },
+    { id: "mock-2", url: MOCK_IMAGE_URL, imageUrl: MOCK_IMAGE_URL, status: "completed", seed: 67890 },
+    { id: "mock-3", url: MOCK_IMAGE_URL, imageUrl: MOCK_IMAGE_URL, status: "completed", seed: 11111 },
+    { id: "mock-4", url: MOCK_IMAGE_URL, imageUrl: MOCK_IMAGE_URL, status: "completed", seed: 22222 },
+  ]);
+  const [selectedVariation, setSelectedVariation] = useState<Variation | null>({
+    id: "mock-1", url: MOCK_IMAGE_URL, imageUrl: MOCK_IMAGE_URL, status: "completed", seed: 12345
+  });
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -217,7 +240,7 @@ export default function StudioPage() {
         setError("Please upload image files only (JPG, PNG)");
         return;
       }
-      
+
       const reader = new FileReader();
       reader.onload = (e) => {
         const newImage: ReferenceImage = {
@@ -263,15 +286,6 @@ export default function StudioPage() {
     return referenceImages.find(img => img.id === selectedRefImage)?.url || null;
   }, [referenceImages, selectedRefImage]);
 
-  // Generation polling state
-  const [generationJobs, setGenerationJobs] = useState<{
-    id: string;
-    status: "pending" | "processing" | "completed" | "failed";
-    imageUrl?: string;
-    error?: string;
-    queuePosition?: number;
-    estimatedWait?: number;
-  }[]>([]);
   const pollTimeoutsRef = useRef<NodeJS.Timeout[]>([]);
 
   // Poll a single job for status
@@ -279,9 +293,9 @@ export default function StudioPage() {
     try {
       const response = await fetch(`/api/generate/${jobId}`);
       if (!response.ok) return false;
-      
+
       const data = await response.json();
-      
+
       setGenerationJobs(prev => prev.map(job => {
         if (job.id !== jobId) return job;
         return {
@@ -303,7 +317,7 @@ export default function StudioPage() {
           }
           return [...prev, { id: jobId, url: data.imageUrl, imageUrl: data.imageUrl }];
         });
-        
+
         // Select first completed variation
         setSelectedVariation(prev => prev || { id: jobId, url: data.imageUrl, imageUrl: data.imageUrl });
       }
@@ -318,10 +332,10 @@ export default function StudioPage() {
   const startPolling = useCallback((jobIds: string[]) => {
     const poll = async () => {
       const results = await Promise.all(jobIds.map(id => pollJob(id)));
-      
+
       // Check if all done
       const allDone = results.every(done => done);
-      
+
       if (allDone) {
         setStatus("complete");
         setProgress(100);
@@ -331,7 +345,7 @@ export default function StudioPage() {
         pollTimeoutsRef.current.push(timeout);
       }
     };
-    
+
     poll();
   }, [pollJob]);
 
@@ -362,9 +376,9 @@ export default function StudioPage() {
 
     try {
       // Get second reference image if available
-      const secondImage = referenceImages.length > 1 ? 
+      const secondImage = referenceImages.length > 1 ?
         referenceImages.find(img => img.id !== selectedRefImage)?.url : undefined;
-      
+
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -393,17 +407,17 @@ export default function StudioPage() {
 
       const data = await response.json();
       setProgress(30);
-      
+
       // Handle async response (self-hosted backend)
       if (data.async && data.variations) {
         const jobs = data.variations.map((v: any) => ({
           id: v.id,
           status: v.status || "pending",
         }));
-        
+
         setGenerationJobs(jobs);
         startPolling(jobs.map((j: any) => j.id));
-        
+
       } else if (data.variations?.length > 0) {
         // Handle sync response (legacy/fallback)
         setProgress(100);
@@ -411,7 +425,7 @@ export default function StudioPage() {
         setSelectedVariation(data.variations[0]);
         setStatus("complete");
       }
-      
+
     } catch (err: any) {
       setError(err.message || "Something went wrong");
       setStatus("error");
@@ -420,8 +434,8 @@ export default function StudioPage() {
 
   // Toggle selection
   const toggleSelection = useCallback((id: string) => {
-    setSelectedIds(prev => 
-      prev.includes(id) 
+    setSelectedIds(prev =>
+      prev.includes(id)
         ? prev.filter(i => i !== id)
         : [...prev, id]
     );
@@ -435,6 +449,19 @@ export default function StudioPage() {
   // Download selected
   const handleDownload = useCallback(() => {
     alert(`Downloading ${selectedIds.length} design(s)...`);
+  }, [selectedIds]);
+
+  // Share selected
+  const handleShare = useCallback(() => {
+    if (selectedIds.length === 0) return;
+
+    // We share the first selected variation for simplicity
+    const generationId = selectedIds[0];
+    const shareUrl = `${window.location.origin}/share/${generationId}`;
+
+    navigator.clipboard.writeText(shareUrl)
+      .then(() => toast.success("Protected share link copied to clipboard!"))
+      .catch(() => toast.error("Failed to copy link"));
   }, [selectedIds]);
 
   // Reset
@@ -467,17 +494,17 @@ export default function StudioPage() {
   }, [selectedVariation]);
 
   // Collapsible section component
-  const CollapsibleSection = ({ 
-    title, 
-    icon: Icon, 
-    isOpen, 
-    onToggle, 
-    children 
-  }: { 
-    title: string; 
-    icon: React.ElementType; 
-    isOpen: boolean; 
-    onToggle: () => void; 
+  const CollapsibleSection = ({
+    title,
+    icon: Icon,
+    isOpen,
+    onToggle,
+    children
+  }: {
+    title: string;
+    icon: React.ElementType;
+    isOpen: boolean;
+    onToggle: () => void;
     children: React.ReactNode;
   }) => (
     <div className="border-b border-white/5">
@@ -501,8 +528,67 @@ export default function StudioPage() {
 
   const currentRefImage = getCurrentRefImageUrl();
 
+  // Watermark CSS styles block
+  const watermarkStyles = `
+    .watermark-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
+      background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 50px,
+        rgba(255, 255, 255, 0.1) 50px,
+        rgba(255, 255, 255, 0.1) 100px
+      );
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      opacity: 0.8;
+      transform: rotate(-30deg) scale(1.5);
+      mix-blend-mode: overlay;
+    }
+
+    .watermark-text-primary {
+      font-size: 3rem;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.9);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      text-shadow: 2px 2px 10px rgba(0,0,0,0.8), -2px -2px 10px rgba(0,0,0,0.8);
+      white-space: nowrap;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .watermark-text-secondary {
+      font-size: 2rem;
+      font-weight: 700;
+      color: rgba(255, 100, 100, 0.9);
+      text-transform: uppercase;
+      letter-spacing: 0.5em;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.8), -2px -2px 8px rgba(0,0,0,0.8);
+      white-space: nowrap;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Invisible overlay to block right clicks */
+    .anti-theft-shield {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      background: transparent;
+      cursor: crosshair;
+    }
+  `;
+
   return (
     <main className="min-h-screen bg-[#0a0a0a]">
+      <style>{watermarkStyles}</style>
       <Header />
 
       {/* Mobile Sidebar Toggle Button - Fixed position */}
@@ -539,8 +625,8 @@ export default function StudioPage() {
               exit={isMobile ? { x: -320 } : undefined}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className={`
-                ${isMobile 
-                  ? 'fixed left-0 top-0 bottom-0 z-50 w-[320px] pt-16' 
+                ${isMobile
+                  ? 'fixed left-0 top-0 bottom-0 z-50 w-[320px] pt-16'
                   : 'relative flex-shrink-0'
                 }
                 border-r border-white/10 bg-[#111111] flex flex-col overflow-hidden
@@ -556,377 +642,371 @@ export default function StudioPage() {
                   <X className="w-4 h-4" />
                 </button>
               )}
-              
+
               <div className="flex-1 overflow-y-auto scrollbar-thin">
-            {/* Workflow Selector */}
-            <div className="p-4 border-b border-white/5">
-              <WorkflowSelector 
-                selected={selectedWorkflow.id}
-                onSelect={(workflow) => {
-                  setSelectedWorkflow(workflow);
-                  // Set prompt template when workflow changes
-                  if (workflow.promptTemplate && !prompt) {
-                    setPrompt(workflow.promptTemplate);
-                  }
-                }}
-              />
-              {/* Show input requirement */}
-              <p className="text-xs text-white/40 mt-2 flex items-center gap-1">
-                <Info className="w-3 h-3" />
-                {selectedWorkflow.inputs === 2 
-                  ? "Upload 2 images for this workflow" 
-                  : "Upload 1 image for this workflow"}
-              </p>
-            </div>
-
-            {/* Prompt Section */}
-            <div className="p-4 border-b border-white/5">
-              <label className="flex items-center gap-2 text-sm font-medium mb-3 text-white/90">
-                <Wand2 className="w-4 h-4 text-[var(--accent)]" />
-                Prompt
-              </label>
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder={selectedWorkflow.promptTemplate || "Describe your textile design..."}
-                className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-3 text-sm text-white placeholder-white/30 resize-none focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
-                rows={3}
-              />
-              {/* Use Template Button */}
-              {selectedWorkflow.promptTemplate && (
-                <button
-                  onClick={() => setPrompt(selectedWorkflow.promptTemplate)}
-                  className="mt-2 text-xs text-[var(--accent)] hover:text-[var(--accent)]/80 flex items-center gap-1"
-                >
-                  <Sparkles className="w-3 h-3" />
-                  Use template for {selectedWorkflow.name}
-                </button>
-              )}
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
-                {["Seamless", "Floral", "Geometric", "Abstract"].map(tag => (
-                  <button
-                    key={tag}
-                    onClick={() => setPrompt(prev => prev ? `${prev}, ${tag.toLowerCase()}` : tag.toLowerCase())}
-                    className="text-xs px-2.5 py-1.5 rounded-lg bg-[#1a1a1a] text-white/60 hover:bg-[var(--accent)]/20 hover:text-[var(--accent)] border border-white/5 hover:border-[var(--accent)]/30 transition-all"
-                  >
-                    + {tag}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Image Guidance */}
-            <CollapsibleSection
-              title="Image Guidance"
-              icon={ImageIcon}
-              isOpen={showImageGuidance}
-              onToggle={() => setShowImageGuidance(!showImageGuidance)}
-            >
-              {/* Reference Images Grid */}
-              <div className="grid grid-cols-3 gap-2">
-                {referenceImages.map((img) => (
-                  <div
-                    key={img.id}
-                    className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all group ${
-                      selectedRefImage === img.id 
-                        ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/30' 
-                        : 'border-transparent hover:border-white/20'
-                    }`}
-                    onClick={() => setSelectedRefImage(img.id)}
-                  >
-                    <Image
-                      src={img.url}
-                      alt="Reference"
-                      fill
-                      className="object-cover"
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeRefImage(img.id);
-                      }}
-                      className="absolute top-1 right-1 p-1 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                    {selectedRefImage === img.id && (
-                      <div className="absolute inset-0 bg-[var(--accent)]/10 flex items-center justify-center">
-                        <Check className="w-5 h-5 text-[var(--accent)]" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-                
-                {/* Add More Button */}
-                <div
-                  className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${
-                    isDragging ? 'border-[var(--accent)] bg-[var(--accent)]/10' : 'border-white/20 hover:border-[var(--accent)] hover:bg-white/5'
-                  }`}
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => e.target.files && handleFiles(e.target.files)}
+                {/* Workflow Selector */}
+                <div className="p-4 border-b border-white/5">
+                  <WorkflowSelector
+                    selected={selectedWorkflow.id}
+                    onSelect={(workflow) => {
+                      setSelectedWorkflow(workflow);
+                      // Set prompt template when workflow changes
+                      if (workflow.promptTemplate && !prompt) {
+                        setPrompt(workflow.promptTemplate);
+                      }
+                    }}
                   />
-                  <Plus className="w-5 h-5 text-white/40" />
+                  {/* Show input requirement */}
+                  <p className="text-xs text-white/40 mt-2 flex items-center gap-1">
+                    <Info className="w-3 h-3" />
+                    {selectedWorkflow.inputs === 2
+                      ? "Upload 2 images for this workflow"
+                      : "Upload 1 image for this workflow"}
+                  </p>
                 </div>
+
+                {/* Prompt Section */}
+                <div className="p-4 border-b border-white/5">
+                  <label className="flex items-center gap-2 text-sm font-medium mb-3 text-white/90">
+                    <Wand2 className="w-4 h-4 text-[var(--accent)]" />
+                    Prompt
+                  </label>
+                  <textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder={selectedWorkflow.promptTemplate || "Describe your textile design..."}
+                    className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-3 text-sm text-white placeholder-white/30 resize-none focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                    rows={3}
+                  />
+                  {/* Use Template Button */}
+                  {selectedWorkflow.promptTemplate && (
+                    <button
+                      onClick={() => setPrompt(selectedWorkflow.promptTemplate)}
+                      className="mt-2 text-xs text-[var(--accent)] hover:text-[var(--accent)]/80 flex items-center gap-1"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      Use template for {selectedWorkflow.name}
+                    </button>
+                  )}
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {["Seamless", "Floral", "Geometric", "Abstract"].map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => setPrompt(prev => prev ? `${prev}, ${tag.toLowerCase()}` : tag.toLowerCase())}
+                        className="text-xs px-2.5 py-1.5 rounded-lg bg-[#1a1a1a] text-white/60 hover:bg-[var(--accent)]/20 hover:text-[var(--accent)] border border-white/5 hover:border-[var(--accent)]/30 transition-all"
+                      >
+                        + {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Image Guidance */}
+                <CollapsibleSection
+                  title="Image Guidance"
+                  icon={ImageIcon}
+                  isOpen={showImageGuidance}
+                  onToggle={() => setShowImageGuidance(!showImageGuidance)}
+                >
+                  {/* Reference Images Grid */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {referenceImages.map((img) => (
+                      <div
+                        key={img.id}
+                        className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all group ${selectedRefImage === img.id
+                          ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/30'
+                          : 'border-transparent hover:border-white/20'
+                          }`}
+                        onClick={() => setSelectedRefImage(img.id)}
+                      >
+                        <Image
+                          src={img.url}
+                          alt="Reference"
+                          fill
+                          className="object-cover"
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeRefImage(img.id);
+                          }}
+                          className="absolute top-1 right-1 p-1 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                        {selectedRefImage === img.id && (
+                          <div className="absolute inset-0 bg-[var(--accent)]/10 flex items-center justify-center">
+                            <Check className="w-5 h-5 text-[var(--accent)]" />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Add More Button */}
+                    <div
+                      className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${isDragging ? 'border-[var(--accent)] bg-[var(--accent)]/10' : 'border-white/20 hover:border-[var(--accent)] hover:bg-white/5'
+                        }`}
+                      onDrop={handleDrop}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => e.target.files && handleFiles(e.target.files)}
+                      />
+                      <Plus className="w-5 h-5 text-white/40" />
+                    </div>
+                  </div>
+
+                  {referenceImages.length === 0 && (
+                    <p className="text-xs text-white/40 text-center mt-2">
+                      Drop images or click + to upload
+                    </p>
+                  )}
+
+                  {/* Style Strength Slider */}
+                  <Slider
+                    value={styleStrength}
+                    onChange={setStyleStrength}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    label="Style Strength"
+                    displayValue={`${Math.round(styleStrength * 100)}%`}
+                    helpText="Controls how much the AI follows the artistic style. Higher = more stylized output."
+                  />
+
+                  {/* Structure Strength Slider */}
+                  <Slider
+                    value={structureStrength}
+                    onChange={setStructureStrength}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    label="Structure Strength"
+                    displayValue={`${Math.round(structureStrength * 100)}%`}
+                    helpText="Controls how closely the output follows the original composition and layout."
+                  />
+                </CollapsibleSection>
+
+                {/* Output Settings */}
+                <CollapsibleSection
+                  title="Output Settings"
+                  icon={Sliders}
+                  isOpen={showOutputSettings}
+                  onToggle={() => setShowOutputSettings(!showOutputSettings)}
+                >
+                  {/* Number of Images */}
+                  <div>
+                    <span className="text-xs text-white/60 block mb-2">Number of Images</span>
+                    <div className="flex gap-2">
+                      {[1, 2, 4, 6].map(num => (
+                        <button
+                          key={num}
+                          onClick={() => setNumVariations(num)}
+                          className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${numVariations === num
+                            ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                            : 'bg-[#1a1a1a] text-white/60 hover:bg-white/10 border border-white/5'
+                            }`}
+                        >
+                          {num}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Aspect Ratio */}
+                  <div>
+                    <span className="text-xs text-white/60 block mb-2">Aspect Ratio</span>
+                    <div className="grid grid-cols-4 gap-2">
+                      {["1:1", "16:9", "4:3", "3:2"].map(ratio => (
+                        <button
+                          key={ratio}
+                          onClick={() => setAspectRatio(ratio)}
+                          className={`py-2 rounded-xl text-xs font-medium transition-all ${aspectRatio === ratio
+                            ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                            : 'bg-[#1a1a1a] text-white/60 hover:bg-white/10 border border-white/5'
+                            }`}
+                        >
+                          {ratio}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Output Format */}
+                  <div>
+                    <span className="text-xs text-white/60 block mb-2">Format</span>
+                    <div className="flex gap-2">
+                      {[
+                        { value: "png", label: "PNG", desc: "Lossless" },
+                        { value: "jpg", label: "JPG", desc: "Smaller" },
+                        { value: "webp", label: "WEBP", desc: "Modern" }
+                      ].map(format => (
+                        <button
+                          key={format.value}
+                          onClick={() => setOutputFormat(format.value)}
+                          className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${outputFormat === format.value
+                            ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                            : 'bg-[#1a1a1a] text-white/60 hover:bg-white/10 border border-white/5'
+                            }`}
+                        >
+                          {format.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </CollapsibleSection>
+
+                {/* Advanced Settings */}
+                <CollapsibleSection
+                  title="Advanced"
+                  icon={Settings2}
+                  isOpen={showAdvanced}
+                  onToggle={() => setShowAdvanced(!showAdvanced)}
+                >
+                  {/* Info banner */}
+                  <div className="p-3 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-xs text-white/70 leading-relaxed">
+                    <div className="flex items-start gap-2">
+                      <Info className="w-4 h-4 text-[var(--accent)] flex-shrink-0 mt-0.5" />
+                      <span>Fine-tune generation parameters. Hover over <HelpCircle className="w-3 h-3 inline text-white/40" /> icons for explanations.</span>
+                    </div>
+                  </div>
+
+                  {/* Seed */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Hash className="w-3.5 h-3.5 text-white/40" />
+                      <span className="text-xs text-white/60">Seed</span>
+                      <InfoTooltip text="A seed number ensures reproducible results. Using the same seed with the same settings will generate the same image. Leave empty for random variations each time." />
+                    </div>
+                    <input
+                      type="number"
+                      value={seed}
+                      onChange={(e) => setSeed(e.target.value)}
+                      placeholder="Leave empty for random"
+                      className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                    />
+                  </div>
+
+                  {/* Guidance Scale Slider */}
+                  <Slider
+                    value={guidance}
+                    onChange={setGuidance}
+                    min={1}
+                    max={5}
+                    step={0.1}
+                    label="Guidance Scale"
+                    displayValue={guidance.toFixed(1)}
+                    helpText="How strictly the AI follows your prompt. Higher values = more literal interpretation, lower = more creative freedom."
+                  />
+
+                  {/* Quality Slider */}
+                  <Slider
+                    value={quality}
+                    onChange={setQuality}
+                    min={50}
+                    max={100}
+                    step={5}
+                    label="Output Quality"
+                    displayValue={`${quality}%`}
+                    helpText="Image compression quality. Higher = better quality but larger file size. 80-90% is usually ideal."
+                  />
+
+                  {/* Steps Slider */}
+                  <Slider
+                    value={steps}
+                    onChange={setSteps}
+                    min={15}
+                    max={50}
+                    step={5}
+                    label="Steps"
+                    displayValue={steps.toString()}
+                    helpText="Number of denoising steps. More steps = better quality but slower. 20-30 is recommended."
+                  />
+
+                  {/* Negative Prompt */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <X className="w-3.5 h-3.5 text-white/40" />
+                      <span className="text-xs text-white/60">Negative Prompt</span>
+                      <InfoTooltip text="Describe what you DON'T want in the image. e.g. 'blurry, watermark, low quality, distorted'" />
+                    </div>
+                    <textarea
+                      value={negativePrompt}
+                      onChange={(e) => setNegativePrompt(e.target.value)}
+                      placeholder="ugly, blurry, bad quality, distorted..."
+                      rows={2}
+                      className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all resize-none"
+                    />
+                  </div>
+                </CollapsibleSection>
               </div>
 
-              {referenceImages.length === 0 && (
-                <p className="text-xs text-white/40 text-center mt-2">
-                  Drop images or click + to upload
+              {/* Bottom Fixed Section */}
+              <div className="p-4 border-t border-white/10 bg-[#111111]">
+                <button
+                  onClick={handleGenerate}
+                  disabled={referenceImages.length === 0 || !prompt.trim() || status === "generating"}
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[#0052cc] text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[var(--accent)]/20"
+                >
+                  {status === "generating" ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Generating... {Math.round(progress)}%
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Create Design
+                    </>
+                  )}
+                </button>
+
+                {/* Progress bar */}
+                {status === "generating" && (
+                  <div className="mt-3 w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-[var(--accent)] to-[#0052cc]"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </div>
+                )}
+
+                {/* Error */}
+                {error && (
+                  <div className="mt-3 p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+                    {error}
+                  </div>
+                )}
+
+                {/* Credits */}
+                <p className="text-xs text-white/40 text-center mt-3">
+                  <Zap className="w-3 h-3 inline mr-1" />
+                  1 credit per image • {numVariations} credits total
                 </p>
+              </div>
+
+              {/* Resize Handle - Desktop only */}
+              {!isMobile && (
+                <div
+                  onMouseDown={startResizing}
+                  className={`absolute right-0 top-0 bottom-0 w-1 cursor-col-resize group hover:bg-[var(--accent)]/50 transition-colors ${isResizing ? 'bg-[var(--accent)]' : 'bg-transparent'
+                    }`}
+                >
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-8 -mr-1.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <GripVertical className="w-3 h-3 text-white/40" />
+                  </div>
+                </div>
               )}
-
-              {/* Style Strength Slider */}
-              <Slider
-                value={styleStrength}
-                onChange={setStyleStrength}
-                min={0}
-                max={1}
-                step={0.05}
-                label="Style Strength"
-                displayValue={`${Math.round(styleStrength * 100)}%`}
-                helpText="Controls how much the AI follows the artistic style. Higher = more stylized output."
-              />
-
-              {/* Structure Strength Slider */}
-              <Slider
-                value={structureStrength}
-                onChange={setStructureStrength}
-                min={0}
-                max={1}
-                step={0.05}
-                label="Structure Strength"
-                displayValue={`${Math.round(structureStrength * 100)}%`}
-                helpText="Controls how closely the output follows the original composition and layout."
-              />
-            </CollapsibleSection>
-
-            {/* Output Settings */}
-            <CollapsibleSection
-              title="Output Settings"
-              icon={Sliders}
-              isOpen={showOutputSettings}
-              onToggle={() => setShowOutputSettings(!showOutputSettings)}
-            >
-              {/* Number of Images */}
-              <div>
-                <span className="text-xs text-white/60 block mb-2">Number of Images</span>
-                <div className="flex gap-2">
-                  {[1, 2, 4, 6].map(num => (
-                    <button
-                      key={num}
-                      onClick={() => setNumVariations(num)}
-                      className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                        numVariations === num 
-                          ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20' 
-                          : 'bg-[#1a1a1a] text-white/60 hover:bg-white/10 border border-white/5'
-                      }`}
-                    >
-                      {num}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Aspect Ratio */}
-              <div>
-                <span className="text-xs text-white/60 block mb-2">Aspect Ratio</span>
-                <div className="grid grid-cols-4 gap-2">
-                  {["1:1", "16:9", "4:3", "3:2"].map(ratio => (
-                    <button
-                      key={ratio}
-                      onClick={() => setAspectRatio(ratio)}
-                      className={`py-2 rounded-xl text-xs font-medium transition-all ${
-                        aspectRatio === ratio 
-                          ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20' 
-                          : 'bg-[#1a1a1a] text-white/60 hover:bg-white/10 border border-white/5'
-                      }`}
-                    >
-                      {ratio}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Output Format */}
-              <div>
-                <span className="text-xs text-white/60 block mb-2">Format</span>
-                <div className="flex gap-2">
-                  {[
-                    { value: "png", label: "PNG", desc: "Lossless" },
-                    { value: "jpg", label: "JPG", desc: "Smaller" },
-                    { value: "webp", label: "WEBP", desc: "Modern" }
-                  ].map(format => (
-                    <button
-                      key={format.value}
-                      onClick={() => setOutputFormat(format.value)}
-                      className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${
-                        outputFormat === format.value 
-                          ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20' 
-                          : 'bg-[#1a1a1a] text-white/60 hover:bg-white/10 border border-white/5'
-                      }`}
-                    >
-                      {format.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </CollapsibleSection>
-
-            {/* Advanced Settings */}
-            <CollapsibleSection
-              title="Advanced"
-              icon={Settings2}
-              isOpen={showAdvanced}
-              onToggle={() => setShowAdvanced(!showAdvanced)}
-            >
-              {/* Info banner */}
-              <div className="p-3 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-xs text-white/70 leading-relaxed">
-                <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-[var(--accent)] flex-shrink-0 mt-0.5" />
-                  <span>Fine-tune generation parameters. Hover over <HelpCircle className="w-3 h-3 inline text-white/40" /> icons for explanations.</span>
-                </div>
-              </div>
-
-              {/* Seed */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Hash className="w-3.5 h-3.5 text-white/40" />
-                  <span className="text-xs text-white/60">Seed</span>
-                  <InfoTooltip text="A seed number ensures reproducible results. Using the same seed with the same settings will generate the same image. Leave empty for random variations each time." />
-                </div>
-                <input
-                  type="number"
-                  value={seed}
-                  onChange={(e) => setSeed(e.target.value)}
-                  placeholder="Leave empty for random"
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
-                />
-              </div>
-
-              {/* Guidance Scale Slider */}
-              <Slider
-                value={guidance}
-                onChange={setGuidance}
-                min={1}
-                max={5}
-                step={0.1}
-                label="Guidance Scale"
-                displayValue={guidance.toFixed(1)}
-                helpText="How strictly the AI follows your prompt. Higher values = more literal interpretation, lower = more creative freedom."
-              />
-
-              {/* Quality Slider */}
-              <Slider
-                value={quality}
-                onChange={setQuality}
-                min={50}
-                max={100}
-                step={5}
-                label="Output Quality"
-                displayValue={`${quality}%`}
-                helpText="Image compression quality. Higher = better quality but larger file size. 80-90% is usually ideal."
-              />
-
-              {/* Steps Slider */}
-              <Slider
-                value={steps}
-                onChange={setSteps}
-                min={15}
-                max={50}
-                step={5}
-                label="Steps"
-                displayValue={steps.toString()}
-                helpText="Number of denoising steps. More steps = better quality but slower. 20-30 is recommended."
-              />
-
-              {/* Negative Prompt */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <X className="w-3.5 h-3.5 text-white/40" />
-                  <span className="text-xs text-white/60">Negative Prompt</span>
-                  <InfoTooltip text="Describe what you DON'T want in the image. e.g. 'blurry, watermark, low quality, distorted'" />
-                </div>
-                <textarea
-                  value={negativePrompt}
-                  onChange={(e) => setNegativePrompt(e.target.value)}
-                  placeholder="ugly, blurry, bad quality, distorted..."
-                  rows={2}
-                  className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all resize-none"
-                />
-              </div>
-            </CollapsibleSection>
-          </div>
-
-          {/* Bottom Fixed Section */}
-          <div className="p-4 border-t border-white/10 bg-[#111111]">
-            <button
-              onClick={handleGenerate}
-              disabled={referenceImages.length === 0 || !prompt.trim() || status === "generating"}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[#0052cc] text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[var(--accent)]/20"
-            >
-              {status === "generating" ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Generating... {Math.round(progress)}%
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" />
-                  Create Design
-                </>
-              )}
-            </button>
-
-            {/* Progress bar */}
-            {status === "generating" && (
-              <div className="mt-3 w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-[var(--accent)] to-[#0052cc]"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.3 }}
-                />
-              </div>
-            )}
-
-            {/* Error */}
-            {error && (
-              <div className="mt-3 p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
-                {error}
-              </div>
-            )}
-
-            {/* Credits */}
-            <p className="text-xs text-white/40 text-center mt-3">
-              <Zap className="w-3 h-3 inline mr-1" />
-              1 credit per image • {numVariations} credits total
-            </p>
-          </div>
-
-          {/* Resize Handle - Desktop only */}
-          {!isMobile && (
-            <div
-              onMouseDown={startResizing}
-              className={`absolute right-0 top-0 bottom-0 w-1 cursor-col-resize group hover:bg-[var(--accent)]/50 transition-colors ${
-                isResizing ? 'bg-[var(--accent)]' : 'bg-transparent'
-              }`}
-            >
-              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-8 -mr-1.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <GripVertical className="w-3 h-3 text-white/40" />
-              </div>
-            </div>
-          )}
-        </motion.aside>
+            </motion.aside>
           )}
         </AnimatePresence>
 
@@ -934,24 +1014,37 @@ export default function StudioPage() {
         <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#0a0a0a]">
           {/* Large Preview */}
           <div className="mb-8">
-            <div className="aspect-square max-w-xl mx-auto rounded-2xl overflow-hidden bg-[#111111] border border-white/10">
+            <div className="aspect-square max-w-xl mx-auto rounded-2xl overflow-hidden bg-[#111111] border border-white/10 relative select-none">
               {selectedVariation && (selectedVariation.url || selectedVariation.imageUrl) ? (
-                <div className="relative w-full h-full">
-                  <Image
-                    src={selectedVariation.url || selectedVariation.imageUrl || ""}
-                    alt="Selected design"
-                    fill
-                    className="object-contain"
+                <div
+                  className="relative w-full h-full"
+                  onContextMenu={(e) => e.preventDefault()}
+                  onDragStart={(e) => e.preventDefault()}
+                >
+                  {/* Image Background instead of img tag to make inspect element harder */}
+                  <div
+                    className="absolute inset-0 bg-contain bg-center bg-no-repeat pointer-events-none"
+                    style={{
+                      backgroundImage: `url(${selectedVariation.url || selectedVariation.imageUrl || ""})`
+                    }}
                   />
+
+                  {/* Invisible Shield for right click blocking */}
+                  <div
+                    className="anti-theft-shield"
+                    onContextMenu={(e) => e.preventDefault()}
+                    title="Preview Image"
+                  />
+
                   {/* Seed badge */}
                   {selectedVariation.seed && (
-                    <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 text-xs text-white/80 backdrop-blur-sm">
+                    <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/80 text-xs text-white z-40 backdrop-blur-sm border border-white/10 shadow-xl pointer-events-auto">
                       Seed: #{selectedVariation.seed}
                     </div>
                   )}
-                  
+
                   {/* Quick Action Buttons */}
-                  <div className="absolute bottom-4 right-4 flex gap-2">
+                  <div className="absolute bottom-4 right-4 flex gap-2 z-40 pointer-events-auto">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -962,7 +1055,7 @@ export default function StudioPage() {
                         setSelectedWorkflow(WORKFLOWS.find(w => w.id === 'model_mockup')!);
                         setPrompt(WORKFLOWS.find(w => w.id === 'model_mockup')?.promptTemplate || "");
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-[#10B981]/80 hover:bg-[#10B981] text-white text-xs font-medium backdrop-blur-sm transition-all flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-lg bg-[#10B981]/90 hover:bg-[#10B981] text-white text-xs font-medium backdrop-blur-sm transition-all flex items-center gap-1.5 shadow-xl border border-white/10"
                       title="Generate model wearing this design"
                     >
                       <User className="w-3.5 h-3.5" />
@@ -978,11 +1071,18 @@ export default function StudioPage() {
                         setSelectedWorkflow(WORKFLOWS.find(w => w.id === 'extract_pattern')!);
                         setPrompt(WORKFLOWS.find(w => w.id === 'extract_pattern')?.promptTemplate || "");
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-[#6366F1]/80 hover:bg-[#6366F1] text-white text-xs font-medium backdrop-blur-sm transition-all flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-lg bg-[#6366F1]/90 hover:bg-[#6366F1] text-white text-xs font-medium backdrop-blur-sm transition-all flex items-center gap-1.5 shadow-xl border border-white/10"
                       title="Extract flat tileable pattern"
                     >
                       <Grid3X3 className="w-3.5 h-3.5" />
                       Extract Pattern
+                    </button>
+                    <button
+                      className="px-3 py-1.5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white text-xs font-bold backdrop-blur-sm transition-all flex items-center gap-1.5 shadow-lg shadow-[var(--accent)]/30 border border-white/20 ml-2"
+                      title="Purchase high resolution file"
+                      onClick={() => alert("Redirecting to checkout to purchase high-res file without watermark...")}
+                    >
+                      BUY HIGH-RES
                     </button>
                   </div>
                 </div>
@@ -1017,7 +1117,7 @@ export default function StudioPage() {
                   {selectedIds.length} selected
                 </span>
               </div>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-6">
                 {variations.map((variation, i) => (
                   <motion.div
@@ -1025,30 +1125,29 @@ export default function StudioPage() {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.05 }}
-                    className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all ${
-                      selectedVariation?.id === variation.id 
-                        ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/30' 
-                        : 'border-transparent hover:border-white/20'
-                    }`}
+                    className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all ${selectedVariation?.id === variation.id
+                      ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/30'
+                      : 'border-transparent hover:border-white/20'
+                      }`}
                     onClick={() => selectForPreview(variation)}
                   >
-                    <Image
-                      src={variation.url || variation.imageUrl || ""}
-                      alt={`Variation ${i + 1}`}
-                      fill
-                      className="object-cover"
+                    <div
+                      className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+                      style={{
+                        backgroundImage: `url(${variation.url || variation.imageUrl || ""})`
+                      }}
                     />
+
                     {/* Checkbox for multi-select */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleSelection(variation.id);
                       }}
-                      className={`absolute top-2 right-2 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
-                        selectedIds.includes(variation.id)
-                          ? 'bg-[var(--accent)] border-[var(--accent)]'
-                          : 'bg-black/40 border-white/40 hover:border-white'
-                      }`}
+                      className={`absolute top-2 right-2 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors z-20 ${selectedIds.includes(variation.id)
+                        ? 'bg-[var(--accent)] border-[var(--accent)]'
+                        : 'bg-black/40 border-white/40 hover:border-white'
+                        }`}
                     >
                       {selectedIds.includes(variation.id) && (
                         <Check className="w-3 h-3 text-white" />
@@ -1059,32 +1158,43 @@ export default function StudioPage() {
               </div>
 
               {/* Actions */}
-              <div className="flex flex-wrap items-center gap-2 md:gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
                 <button
                   onClick={handleDownload}
                   disabled={selectedIds.length === 0}
-                  className="flex-1 min-w-[120px] py-2.5 rounded-xl bg-[var(--accent)] text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm md:text-base"
+                  title="Payment required to download high-res files"
+                  className="w-full py-2.5 rounded-xl bg-white/5 text-white/50 font-medium flex items-center justify-center gap-1.5 transition-all text-xs lg:text-sm border border-white/10 cursor-not-allowed"
                 >
-                  <Download className="w-4 h-4" />
-                  <span className="hidden sm:inline">Download</span> ({selectedIds.length})
+                  <Download className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Download Pro</span>
+                  <span className="shrink-0 opacity-70">({selectedIds.length})</span>
                 </button>
-                
+
+                <button
+                  onClick={handleShare}
+                  disabled={selectedIds.length === 0}
+                  className="w-full py-2.5 rounded-xl bg-[#6366F1] hover:bg-[#4F46E5] text-white font-medium flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs lg:text-sm shadow-lg shadow-[#6366F1]/20"
+                >
+                  <Share2 className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Share Preview</span>
+                </button>
+
                 <button
                   onClick={useAsReference}
                   disabled={!selectedVariation}
-                  className="py-2.5 px-3 md:px-4 rounded-xl bg-white/10 text-white font-medium flex items-center gap-2 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm md:text-base"
+                  className="w-full py-2.5 rounded-xl bg-white/10 text-white font-medium flex items-center justify-center gap-1.5 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs lg:text-sm"
                   title="Use selected image as new reference"
                 >
-                  <RefreshCw className="w-4 h-4" />
-                  <span className="hidden sm:inline">Iterate</span>
+                  <RefreshCw className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Iterate</span>
                 </button>
-                
+
                 <button
                   onClick={handleGenerate}
-                  className="py-2.5 px-3 md:px-4 rounded-xl bg-white/10 text-white font-medium flex items-center gap-2 hover:bg-white/15 transition-all text-sm md:text-base"
+                  className="w-full py-2.5 rounded-xl bg-white/10 text-white font-medium flex items-center justify-center gap-1.5 hover:bg-white/15 transition-all text-xs lg:text-sm"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span className="hidden sm:inline">Regenerate</span>
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Regenerate</span>
                 </button>
               </div>
             </div>
