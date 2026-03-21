@@ -28,6 +28,8 @@ export default function GPUMarketplacePage() {
   const [vastApiKey, setVastApiKey] = useState('');
   const [isRenting, setIsRenting] = useState(false);
   const [progress, setProgress] = useState('');
+  const [progressSteps, setProgressSteps] = useState<Array<{ name: string; status: string; message: string }>>([]);
+  const [progressPercent, setProgressPercent] = useState(0);
   const [sortBy, setSortBy] = useState<'price' | 'reliability' | 'location'>('price');
 
   useEffect(() => {
@@ -96,19 +98,28 @@ export default function GPUMarketplacePage() {
         const data = await res.json();
 
         setProgress(data.message);
+        setProgressPercent(data.progress || 0);
+        if (data.steps) {
+          setProgressSteps(data.steps);
+        }
 
         if (data.status === 'completed') {
           clearInterval(interval);
-          setProgress('✅ GPU Ready! Redirecting...');
-          setTimeout(() => router.push('/dashboard/my-gpus'), 2000);
+          setProgress('✅ GPU Ready! Your instance is set up and running.');
+          setProgressPercent(100);
+          setIsRenting(false);
+          // Optionally redirect or show success
+          if (data.instanceDetails?.workerUrl) {
+            alert(`GPU is ready!\n\nWorker URL: ${data.instanceDetails.workerUrl}\n\nYou can now generate designs in the Studio.`);
+          }
         } else if (data.status === 'failed') {
           clearInterval(interval);
           setIsRenting(false);
-          alert('Setup failed: ' + data.message);
+          setProgress(data.message);
         }
       } catch (error) {
-        clearInterval(interval);
-        setIsRenting(false);
+        // Don't stop polling on network errors
+        console.error('Poll error:', error);
       }
     }, 5000);
   };
@@ -258,6 +269,8 @@ export default function GPUMarketplacePage() {
             setVastApiKey={setVastApiKey}
             isRenting={isRenting}
             progress={progress}
+            progressSteps={progressSteps}
+            progressPercent={progressPercent}
             onRent={handleRent}
             onClose={() => {
               setShowRentalModal(false);
@@ -352,6 +365,8 @@ function RentalModal({
   setVastApiKey,
   isRenting,
   progress,
+  progressSteps,
+  progressPercent,
   onRent,
   onClose,
 }: {
@@ -360,6 +375,8 @@ function RentalModal({
   setVastApiKey: (key: string) => void;
   isRenting: boolean;
   progress: string;
+  progressSteps: Array<{ name: string; status: string; message: string }>;
+  progressPercent: number;
   onRent: () => void;
   onClose: () => void;
 }) {
@@ -406,49 +423,106 @@ function RentalModal({
           </div>
 
           {/* API Key Input */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-white mb-2">
-              Vast.ai API Key
-              <a
-                href="https://cloud.vast.ai/account/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ml-2 text-[var(--accent)] hover:underline text-sm font-normal"
-              >
-                Get API Key →
-              </a>
-            </label>
-            <input
-              type="password"
-              value={vastApiKey}
-              onChange={(e) => setVastApiKey(e.target.value)}
-              placeholder="Enter your Vast.ai API key"
-              disabled={isRenting}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--accent)] transition-colors disabled:opacity-50"
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              Your API key is encrypted and only used to rent GPUs on your behalf
-            </p>
-          </div>
+          {!isRenting && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-white mb-2">
+                Vast.ai API Key
+                <a
+                  href="https://cloud.vast.ai/account/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-2 text-[var(--accent)] hover:underline text-sm font-normal"
+                >
+                  Get API Key →
+                </a>
+              </label>
+              <input
+                type="password"
+                value={vastApiKey}
+                onChange={(e) => setVastApiKey(e.target.value)}
+                placeholder="Enter your Vast.ai API key"
+                disabled={isRenting}
+                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--accent)] transition-colors disabled:opacity-50"
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                Your API key is used to rent GPUs on your Vast.ai account
+              </p>
+            </div>
+          )}
 
           {/* Action Button */}
-          <button
-            onClick={onRent}
-            disabled={isRenting || !vastApiKey}
-            className="w-full px-6 py-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed mb-6"
-          >
-            {isRenting ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                Setting up...
-              </span>
-            ) : (
-              '🚀 Rent & Auto-Setup'
-            )}
-          </button>
+          {!isRenting && (
+            <button
+              onClick={onRent}
+              disabled={isRenting || !vastApiKey}
+              className="w-full px-6 py-4 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white rounded-xl font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+            >
+              🚀 Rent & Auto-Setup
+            </button>
+          )}
 
-          {/* Progress */}
-          {progress && (
+          {/* Step-by-step Progress */}
+          {isRenting && progressSteps.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6"
+            >
+              {/* Progress Bar */}
+              <div className="w-full bg-white/5 rounded-full h-2 mb-6">
+                <motion.div
+                  className="bg-[var(--accent)] h-2 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPercent}%` }}
+                  transition={{ duration: 0.5 }}
+                />
+              </div>
+
+              {/* Steps */}
+              <div className="space-y-3">
+                {progressSteps.map((step, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    {/* Step icon */}
+                    <div className="flex-shrink-0">
+                      {step.status === 'done' ? (
+                        <div className="w-6 h-6 bg-green-500/20 border border-green-500/40 rounded-full flex items-center justify-center">
+                          <svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      ) : step.status === 'running' ? (
+                        <div className="w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+                      ) : step.status === 'failed' ? (
+                        <div className="w-6 h-6 bg-red-500/20 border border-red-500/40 rounded-full flex items-center justify-center">
+                          <svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 bg-white/5 border border-white/10 rounded-full" />
+                      )}
+                    </div>
+
+                    {/* Step text */}
+                    <span className={`text-sm ${
+                      step.status === 'done'
+                        ? 'text-green-400'
+                        : step.status === 'running'
+                        ? 'text-white font-medium'
+                        : step.status === 'failed'
+                        ? 'text-red-400'
+                        : 'text-gray-500'
+                    }`}>
+                      {step.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Simple Progress (fallback when no steps yet) */}
+          {progress && progressSteps.length === 0 && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -461,26 +535,28 @@ function RentalModal({
             </motion.div>
           )}
 
-          {/* What Happens Next */}
-          <div className="bg-white/5 rounded-xl p-6">
-            <h3 className="font-semibold text-white mb-4">What happens next:</h3>
-            <ol className="space-y-3">
-              {[
-                'We rent this GPU on your Vast.ai account',
-                'Automatically install ComfyUI + FLUX models (8GB)',
-                'Configure all textile design workflows',
-                'Start worker on port 8000',
-                'You start generating! (~5-10 minutes)',
-              ].map((step, index) => (
-                <li key={index} className="flex items-start gap-3 text-sm text-gray-300">
-                  <span className="flex-shrink-0 w-6 h-6 bg-[var(--accent)]/20 text-[var(--accent)] rounded-full flex items-center justify-center text-xs font-bold">
-                    {index + 1}
-                  </span>
-                  <span className="pt-0.5">{step}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
+          {/* What Happens Next (show only before renting) */}
+          {!isRenting && (
+            <div className="bg-white/5 rounded-xl p-6">
+              <h3 className="font-semibold text-white mb-4">What happens next:</h3>
+              <ol className="space-y-3">
+                {[
+                  'We rent this GPU on your Vast.ai account',
+                  'Automatically install ComfyUI + FLUX models (8GB)',
+                  'Configure all textile design workflows',
+                  'Start worker on port 8000',
+                  'You start generating! (~5-10 minutes)',
+                ].map((step, index) => (
+                  <li key={index} className="flex items-start gap-3 text-sm text-gray-300">
+                    <span className="flex-shrink-0 w-6 h-6 bg-[var(--accent)]/20 text-[var(--accent)] rounded-full flex items-center justify-center text-xs font-bold">
+                      {index + 1}
+                    </span>
+                    <span className="pt-0.5">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
         </div>
       </motion.div>
     </motion.div>

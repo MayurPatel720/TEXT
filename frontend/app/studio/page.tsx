@@ -1077,13 +1077,7 @@ export default function StudioPage() {
                       <Grid3X3 className="w-3.5 h-3.5" />
                       Extract Pattern
                     </button>
-                    <button
-                      className="px-3 py-1.5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white text-xs font-bold backdrop-blur-sm transition-all flex items-center gap-1.5 shadow-lg shadow-[var(--accent)]/30 border border-white/20 ml-2"
-                      title="Purchase high resolution file"
-                      onClick={() => alert("Redirecting to checkout to purchase high-res file without watermark...")}
-                    >
-                      BUY HIGH-RES
-                    </button>
+
                   </div>
                 </div>
               ) : currentRefImage ? (
