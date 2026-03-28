@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, Shirt, Layers, User, Palette, Grid3X3, Edit3 } from "lucide-react";
+import { Sparkles, Shirt, Layers, User, Palette, Grid3X3, Edit3, Droplets, ImageIcon, Move3d, PaintBucket, Ribbon, Clock, Target, Waves } from "lucide-react";
 
 export interface Workflow {
   id: string;
@@ -76,7 +76,79 @@ export const WORKFLOWS: Workflow[] = [
     inputs: 1,
     promptTemplate: "",
     color: "#64748B"
-  }
+  },
+  {
+    id: "color_swap",
+    name: "Color Swap",
+    description: "Change fabric colors precisely",
+    icon: <Droplets className="w-5 h-5" />,
+    inputs: 1,
+    promptTemplate: "Change the color of the fabric from [original color] to [target color], keeping exact same pattern, texture, garment shape, and lighting",
+    color: "#F43F5E"
+  },
+  // {
+  //   id: "background_change",
+  //   name: "Background Change",
+  //   description: "Replace photo background",
+  //   icon: <ImageIcon className="w-5 h-5" />,
+  //   inputs: 1,
+  //   promptTemplate: "Place this garment/model in a [studio/outdoor/luxury boutique/runway] setting with professional lighting, keeping the subject exactly the same",
+  //   color: "#0EA5E9"
+  // },
+  // {
+  //   id: "draping_sim",
+  //   name: "Draping Sim",
+  //   description: "Drape flat pattern on model",
+  //   icon: <Move3d className="w-5 h-5" />,
+  //   inputs: 2,
+  //   promptTemplate: "Drape the fabric pattern from the first image onto the model/mannequin in the second image, showing realistic folds, wrinkles, and how the fabric falls naturally",
+  //   color: "#A855F7"
+  // },
+  // {
+  //   id: "batch_colorways",
+  //   name: "Batch Colorways",
+  //   description: "Multiple color variations",
+  //   icon: <PaintBucket className="w-5 h-5" />,
+  //   inputs: 1,
+  //   promptTemplate: "Generate this same design in a [warm earth tone/cool blue/vibrant jewel tone/pastel] color palette, maintaining exact same pattern and garment structure",
+  //   color: "#D946EF"
+  // },
+  // {
+  //   id: "embroidery_effect",
+  //   name: "Embroidery Effect",
+  //   description: "Add embroidery/texture look",
+  //   icon: <Ribbon className="w-5 h-5" />,
+  //   inputs: 1,
+  //   promptTemplate: "Transform this design into detailed [thread embroidery/beadwork/sequin work/zardozi] on fabric, with realistic thread texture, shadows, and 3D depth",
+  //   color: "#E11D48"
+  // },
+  // {
+  //   id: "age_wear",
+  //   name: "Age & Wear",
+  //   description: "Simulate aging/distressing",
+  //   icon: <Clock className="w-5 h-5" />,
+  //   inputs: 1,
+  //   promptTemplate: "Show this garment after [stone washing/acid washing/sun fading/vintage aging], with realistic wear patterns, softened colors, and natural distressing",
+  //   color: "#78716C"
+  // },
+  // {
+  //   id: "print_placement",
+  //   name: "Print Placement",
+  //   description: "Place print/logo on garment",
+  //   icon: <Target className="w-5 h-5" />,
+  //   inputs: 2,
+  //   promptTemplate: "Place the print/logo from the second image onto the [chest/back/sleeve/all-over] of the garment in the first image, following fabric folds and perspective naturally",
+  //   color: "#F97316"
+  // },
+  // {
+  //   id: "fabric_texture",
+  //   name: "Fabric Texture",
+  //   description: "Generate realistic texture",
+  //   icon: <Waves className="w-5 h-5" />,
+  //   inputs: 1,
+  //   promptTemplate: "Generate a photorealistic, seamless, tileable [silk/denim/tweed/lace/velvet] fabric texture based on this reference, suitable for textile design software",
+  //   color: "#14B8A6"
+  // }
 ];
 
 interface WorkflowSelectorProps {

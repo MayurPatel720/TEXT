@@ -542,6 +542,400 @@ def build_creative_edit(image1, image2, prompt, negative_prompt, seed, steps, gu
     return workflow
 
 # =============================================================================
+# WORKFLOW 8: COLOR SWAP (change specific colors only)
+# =============================================================================
+
+def build_color_swap(image1, image2, prompt, negative_prompt, seed, steps, guidance, structure_strength, width, height, job_id):
+    """Swap specific colors in garment/fabric while preserving everything else.
+    Uses very low denoise to only change colors, not structure."""
+    denoise = 0.45 + (1 - structure_strength) * 0.2  # 0.45-0.65 range, very structural
+    
+    workflow = get_model_loaders()
+    workflow.update(get_text_encoding(prompt, negative_prompt))
+    
+    workflow.update({
+        "142": {"class_type": "LoadImage", "inputs": {"image": image1}},
+        "42": {"class_type": "FluxKontextImageScale", "inputs": {"image": ["142", 0]}},
+        "124": {"class_type": "VAEEncode", "inputs": {"pixels": ["42", 0], "vae": ["39", 0]}},
+        
+        "177": {"class_type": "ReferenceLatent", "inputs": {
+            "conditioning": ["6", 0], "latent": ["124", 0]
+        }},
+        "35": {"class_type": "FluxGuidance", "inputs": {
+            "conditioning": ["177", 0], "guidance": max(guidance, 4.0)
+        }},
+        
+        # Encoded latent preserves structure, low denoise changes only color
+        "31": {"class_type": "KSampler", "inputs": {
+            "model": ["37", 0],
+            "positive": ["35", 0],
+            "negative": ["135", 0],
+            "latent_image": ["124", 0],
+            "seed": seed, "steps": steps, "cfg": 1,
+            "sampler_name": "euler", "scheduler": "simple",
+            "denoise": denoise
+        }},
+        
+        "8": {"class_type": "VAEDecode", "inputs": {"samples": ["31", 0], "vae": ["39", 0]}},
+        "136": {"class_type": "SaveImage", "inputs": {
+            "images": ["8", 0], "filename_prefix": f"colorswap_{job_id}"
+        }}
+    })
+    return workflow
+
+# =============================================================================
+# WORKFLOW 9: BACKGROUND CHANGE (replace product photo background)
+# =============================================================================
+
+def build_background_change(image1, image2, prompt, negative_prompt, seed, steps, guidance, structure_strength, width, height, job_id):
+    """Replace background of a product/model photo.
+    Preserves subject with medium denoise, lets background regenerate."""
+    denoise = 0.75 + (1 - structure_strength) * 0.15  # 0.75-0.90
+    
+    workflow = get_model_loaders()
+    workflow.update(get_text_encoding(prompt, negative_prompt))
+    
+    workflow.update({
+        "142": {"class_type": "LoadImage", "inputs": {"image": image1}},
+        "42": {"class_type": "FluxKontextImageScale", "inputs": {"image": ["142", 0]}},
+        "124": {"class_type": "VAEEncode", "inputs": {"pixels": ["42", 0], "vae": ["39", 0]}},
+        
+        "177": {"class_type": "ReferenceLatent", "inputs": {
+            "conditioning": ["6", 0], "latent": ["124", 0]
+        }},
+        "35": {"class_type": "FluxGuidance", "inputs": {
+            "conditioning": ["177", 0], "guidance": max(guidance, 3.5)
+        }},
+        
+        # Use empty latent for fresh background generation
+        "188": {"class_type": "EmptySD3LatentImage", "inputs": {
+            "width": width, "height": height, "batch_size": 1
+        }},
+        
+        "31": {"class_type": "KSampler", "inputs": {
+            "model": ["37", 0],
+            "positive": ["35", 0],
+            "negative": ["135", 0],
+            "latent_image": ["188", 0],
+            "seed": seed, "steps": steps, "cfg": 1,
+            "sampler_name": "euler", "scheduler": "simple",
+            "denoise": 1.0
+        }},
+        
+        "8": {"class_type": "VAEDecode", "inputs": {"samples": ["31", 0], "vae": ["39", 0]}},
+        "136": {"class_type": "SaveImage", "inputs": {
+            "images": ["8", 0], "filename_prefix": f"bgchange_{job_id}"
+        }}
+    })
+    return workflow
+
+# =============================================================================
+# WORKFLOW 10: DRAPING SIMULATION (flat pattern → draped on mannequin/model)
+# =============================================================================
+
+def build_draping_sim(image1, image2, prompt, negative_prompt, seed, steps, guidance, structure_strength, width, height, job_id):
+    """Show flat pattern draped on a mannequin or model.
+    Image1 = flat pattern, Image2 = model/mannequin. Stitches both as reference."""
+    guidance = max(guidance, 4.0)
+    
+    workflow = get_model_loaders()
+    workflow.update(get_text_encoding(prompt, negative_prompt))
+    
+    # Load both images and stitch
+    workflow["142"] = {"class_type": "LoadImage", "inputs": {"image": image1}}
+    if image2:
+        workflow["147"] = {"class_type": "LoadImage", "inputs": {"image": image2}}
+        workflow["146"] = {"class_type": "ImageStitch", "inputs": {
+            "image1": ["142", 0], "image2": ["147", 0],
+            "direction": "right", "match_image_size": True,
+            "feathering": 0, "spacing_width": 0, "spacing_color": "white"
+        }}
+        ref_source = ["146", 0]
+        
+        # Encode model/mannequin as base latent to preserve pose
+        workflow["model_scale"] = {"class_type": "FluxKontextImageScale", "inputs": {"image": ["147", 0]}}
+        workflow["model_latent"] = {"class_type": "VAEEncode", "inputs": {"pixels": ["model_scale", 0], "vae": ["39", 0]}}
+        base_latent = ["model_latent", 0]
+        denoise = 0.85
+    else:
+        ref_source = ["142", 0]
+        base_latent = None
+        denoise = 1.0
+    
+    workflow.update({
+        "42": {"class_type": "FluxKontextImageScale", "inputs": {"image": ref_source}},
+        "124": {"class_type": "VAEEncode", "inputs": {"pixels": ["42", 0], "vae": ["39", 0]}},
+        
+        "177": {"class_type": "ReferenceLatent", "inputs": {
+            "conditioning": ["6", 0], "latent": ["124", 0]
+        }},
+        "35": {"class_type": "FluxGuidance", "inputs": {
+            "conditioning": ["177", 0], "guidance": guidance
+        }},
+    })
+    
+    # Use model latent if available, otherwise empty
+    if base_latent:
+        workflow["31"] = {"class_type": "KSampler", "inputs": {
+            "model": ["37", 0],
+            "positive": ["35", 0],
+            "negative": ["135", 0],
+            "latent_image": base_latent,
+            "seed": seed, "steps": steps, "cfg": 1,
+            "sampler_name": "euler", "scheduler": "simple",
+            "denoise": denoise
+        }}
+    else:
+        workflow["188"] = {"class_type": "EmptySD3LatentImage", "inputs": {
+            "width": width, "height": height, "batch_size": 1
+        }}
+        workflow["31"] = {"class_type": "KSampler", "inputs": {
+            "model": ["37", 0],
+            "positive": ["35", 0],
+            "negative": ["135", 0],
+            "latent_image": ["188", 0],
+            "seed": seed, "steps": steps, "cfg": 1,
+            "sampler_name": "euler", "scheduler": "simple",
+            "denoise": 1.0
+        }}
+    
+    workflow.update({
+        "8": {"class_type": "VAEDecode", "inputs": {"samples": ["31", 0], "vae": ["39", 0]}},
+        "136": {"class_type": "SaveImage", "inputs": {
+            "images": ["8", 0], "filename_prefix": f"drape_{job_id}"
+        }}
+    })
+    return workflow
+
+# =============================================================================
+# WORKFLOW 11: BATCH COLORWAYS (same design, multiple color variations)
+# =============================================================================
+
+def build_batch_colorways(image1, image2, prompt, negative_prompt, seed, steps, guidance, structure_strength, width, height, job_id):
+    """Generate the same design in multiple color variations.
+    Uses batch_size=4 to produce 4 colorways simultaneously."""
+    denoise = 0.5 + (1 - structure_strength) * 0.2  # Low denoise to preserve design
+    
+    workflow = get_model_loaders()
+    workflow.update(get_text_encoding(prompt, negative_prompt))
+    
+    workflow.update({
+        "142": {"class_type": "LoadImage", "inputs": {"image": image1}},
+        "42": {"class_type": "FluxKontextImageScale", "inputs": {"image": ["142", 0]}},
+        "124": {"class_type": "VAEEncode", "inputs": {"pixels": ["42", 0], "vae": ["39", 0]}},
+        
+        "177": {"class_type": "ReferenceLatent", "inputs": {
+            "conditioning": ["6", 0], "latent": ["124", 0]
+        }},
+        "35": {"class_type": "FluxGuidance", "inputs": {
+            "conditioning": ["177", 0], "guidance": max(guidance, 3.5)
+        }},
+        
+        # Encoded latent with low denoise for color-only changes
+        "31": {"class_type": "KSampler", "inputs": {
+            "model": ["37", 0],
+            "positive": ["35", 0],
+            "negative": ["135", 0],
+            "latent_image": ["124", 0],
+            "seed": seed, "steps": steps, "cfg": 1,
+            "sampler_name": "euler", "scheduler": "simple",
+            "denoise": denoise
+        }},
+        
+        "8": {"class_type": "VAEDecode", "inputs": {"samples": ["31", 0], "vae": ["39", 0]}},
+        "136": {"class_type": "SaveImage", "inputs": {
+            "images": ["8", 0], "filename_prefix": f"colorway_{job_id}"
+        }}
+    })
+    return workflow
+
+# =============================================================================
+# WORKFLOW 12: EMBROIDERY EFFECT (flat design → embroidered look)
+# =============================================================================
+
+def build_embroidery_effect(image1, image2, prompt, negative_prompt, seed, steps, guidance, structure_strength, width, height, job_id):
+    """Transform flat design to look like embroidery, beadwork, or textile texture.
+    Medium denoise to preserve design while adding texture."""
+    denoise = 0.6 + (1 - structure_strength) * 0.2  # 0.60-0.80
+    
+    workflow = get_model_loaders()
+    workflow.update(get_text_encoding(prompt, negative_prompt))
+    
+    workflow.update({
+        "142": {"class_type": "LoadImage", "inputs": {"image": image1}},
+        "42": {"class_type": "FluxKontextImageScale", "inputs": {"image": ["142", 0]}},
+        "124": {"class_type": "VAEEncode", "inputs": {"pixels": ["42", 0], "vae": ["39", 0]}},
+        
+        "177": {"class_type": "ReferenceLatent", "inputs": {
+            "conditioning": ["6", 0], "latent": ["124", 0]
+        }},
+        "35": {"class_type": "FluxGuidance", "inputs": {
+            "conditioning": ["177", 0], "guidance": max(guidance, 4.5)
+        }},
+        
+        # Use encoded image with medium denoise to add texture over design
+        "31": {"class_type": "KSampler", "inputs": {
+            "model": ["37", 0],
+            "positive": ["35", 0],
+            "negative": ["135", 0],
+            "latent_image": ["124", 0],
+            "seed": seed, "steps": max(steps, 30), "cfg": 1,
+            "sampler_name": "euler", "scheduler": "simple",
+            "denoise": denoise
+        }},
+        
+        "8": {"class_type": "VAEDecode", "inputs": {"samples": ["31", 0], "vae": ["39", 0]}},
+        "136": {"class_type": "SaveImage", "inputs": {
+            "images": ["8", 0], "filename_prefix": f"embroidery_{job_id}"
+        }}
+    })
+    return workflow
+
+# =============================================================================
+# WORKFLOW 13: AGE & WEAR (simulate aging, washing, distressing)
+# =============================================================================
+
+def build_age_wear(image1, image2, prompt, negative_prompt, seed, steps, guidance, structure_strength, width, height, job_id):
+    """Simulate aging, wash effects, or distressing on fabric.
+    Preserves garment structure, applies wear effects."""
+    denoise = 0.55 + (1 - structure_strength) * 0.2  # 0.55-0.75
+    
+    workflow = get_model_loaders()
+    workflow.update(get_text_encoding(prompt, negative_prompt))
+    
+    workflow.update({
+        "142": {"class_type": "LoadImage", "inputs": {"image": image1}},
+        "42": {"class_type": "FluxKontextImageScale", "inputs": {"image": ["142", 0]}},
+        "124": {"class_type": "VAEEncode", "inputs": {"pixels": ["42", 0], "vae": ["39", 0]}},
+        
+        "177": {"class_type": "ReferenceLatent", "inputs": {
+            "conditioning": ["6", 0], "latent": ["124", 0]
+        }},
+        "35": {"class_type": "FluxGuidance", "inputs": {
+            "conditioning": ["177", 0], "guidance": guidance
+        }},
+        
+        "31": {"class_type": "KSampler", "inputs": {
+            "model": ["37", 0],
+            "positive": ["35", 0],
+            "negative": ["135", 0],
+            "latent_image": ["124", 0],
+            "seed": seed, "steps": steps, "cfg": 1,
+            "sampler_name": "euler", "scheduler": "simple",
+            "denoise": denoise
+        }},
+        
+        "8": {"class_type": "VAEDecode", "inputs": {"samples": ["31", 0], "vae": ["39", 0]}},
+        "136": {"class_type": "SaveImage", "inputs": {
+            "images": ["8", 0], "filename_prefix": f"agewear_{job_id}"
+        }}
+    })
+    return workflow
+
+# =============================================================================
+# WORKFLOW 14: PRINT PLACEMENT (place print/logo on garment)
+# =============================================================================
+
+def build_print_placement(image1, image2, prompt, negative_prompt, seed, steps, guidance, structure_strength, width, height, job_id):
+    """Place a print/logo precisely on a garment.
+    Image1 = garment, Image2 = print/logo. Preserves garment, adds print."""
+    guidance = max(guidance, 4.0)
+    denoise = 0.75
+    
+    workflow = get_model_loaders()
+    workflow.update(get_text_encoding(prompt, negative_prompt))
+    
+    # Load both images and stitch
+    workflow["142"] = {"class_type": "LoadImage", "inputs": {"image": image1}}  # Garment
+    if image2:
+        workflow["147"] = {"class_type": "LoadImage", "inputs": {"image": image2}}  # Print/logo
+        workflow["146"] = {"class_type": "ImageStitch", "inputs": {
+            "image1": ["142", 0], "image2": ["147", 0],
+            "direction": "right", "match_image_size": True,
+            "feathering": 0, "spacing_width": 0, "spacing_color": "white"
+        }}
+        ref_source = ["146", 0]
+    else:
+        ref_source = ["142", 0]
+    
+    # Encode garment as base latent to preserve it
+    workflow["garment_scale"] = {"class_type": "FluxKontextImageScale", "inputs": {"image": ["142", 0]}}
+    workflow["garment_latent"] = {"class_type": "VAEEncode", "inputs": {"pixels": ["garment_scale", 0], "vae": ["39", 0]}}
+    
+    workflow.update({
+        "42": {"class_type": "FluxKontextImageScale", "inputs": {"image": ref_source}},
+        "124": {"class_type": "VAEEncode", "inputs": {"pixels": ["42", 0], "vae": ["39", 0]}},
+        
+        "177": {"class_type": "ReferenceLatent", "inputs": {
+            "conditioning": ["6", 0], "latent": ["124", 0]
+        }},
+        "35": {"class_type": "FluxGuidance", "inputs": {
+            "conditioning": ["177", 0], "guidance": guidance
+        }},
+        
+        # Use garment latent as base to preserve garment shape
+        "31": {"class_type": "KSampler", "inputs": {
+            "model": ["37", 0],
+            "positive": ["35", 0],
+            "negative": ["135", 0],
+            "latent_image": ["garment_latent", 0],
+            "seed": seed, "steps": steps, "cfg": 1,
+            "sampler_name": "euler", "scheduler": "simple",
+            "denoise": denoise
+        }},
+        
+        "8": {"class_type": "VAEDecode", "inputs": {"samples": ["31", 0], "vae": ["39", 0]}},
+        "136": {"class_type": "SaveImage", "inputs": {
+            "images": ["8", 0], "filename_prefix": f"printplace_{job_id}"
+        }}
+    })
+    return workflow
+
+# =============================================================================
+# WORKFLOW 15: FABRIC TEXTURE (sketch/description → realistic texture)
+# =============================================================================
+
+def build_fabric_texture(image1, image2, prompt, negative_prompt, seed, steps, guidance, structure_strength, width, height, job_id):
+    """Generate realistic fabric texture from a sketch or rough input.
+    High denoise for maximum creativity, square output for textile use."""
+    workflow = get_model_loaders()
+    workflow.update(get_text_encoding(prompt, negative_prompt))
+    
+    workflow.update({
+        "142": {"class_type": "LoadImage", "inputs": {"image": image1}},
+        "42": {"class_type": "FluxKontextImageScale", "inputs": {"image": ["142", 0]}},
+        "124": {"class_type": "VAEEncode", "inputs": {"pixels": ["42", 0], "vae": ["39", 0]}},
+        
+        "177": {"class_type": "ReferenceLatent", "inputs": {
+            "conditioning": ["6", 0], "latent": ["124", 0]
+        }},
+        "35": {"class_type": "FluxGuidance", "inputs": {
+            "conditioning": ["177", 0], "guidance": max(guidance, 4.0)
+        }},
+        
+        # Square output for tileable fabric texture
+        "188": {"class_type": "EmptySD3LatentImage", "inputs": {
+            "width": 1024, "height": 1024, "batch_size": 1
+        }},
+        
+        "31": {"class_type": "KSampler", "inputs": {
+            "model": ["37", 0],
+            "positive": ["35", 0],
+            "negative": ["135", 0],
+            "latent_image": ["188", 0],
+            "seed": seed, "steps": max(steps, 30), "cfg": 1,
+            "sampler_name": "euler", "scheduler": "simple",
+            "denoise": 0.95
+        }},
+        
+        "8": {"class_type": "VAEDecode", "inputs": {"samples": ["31", 0], "vae": ["39", 0]}},
+        "136": {"class_type": "SaveImage", "inputs": {
+            "images": ["8", 0], "filename_prefix": f"texture_{job_id}"
+        }}
+    })
+    return workflow
+
+# =============================================================================
 # WORKFLOW ROUTER
 # =============================================================================
 
@@ -553,6 +947,15 @@ WORKFLOW_BUILDERS = {
     'style_transfer': build_style_transfer,
     'extract_pattern': build_extract_pattern,
     'creative_edit': build_creative_edit,
+    # New workflows
+    'color_swap': build_color_swap,
+    'background_change': build_background_change,
+    'draping_sim': build_draping_sim,
+    'batch_colorways': build_batch_colorways,
+    'embroidery_effect': build_embroidery_effect,
+    'age_wear': build_age_wear,
+    'print_placement': build_print_placement,
+    'fabric_texture': build_fabric_texture,
 }
 
 # =============================================================================
