@@ -123,7 +123,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <head>
-        <meta name="theme-color" content="#0A0A0A" />
+        <meta name="theme-color" content="#FAFAFA" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -154,10 +154,11 @@ export default function RootLayout({
               position="bottom-right"
               toastOptions={{
                 style: {
-                  background: '#1a1a1a',
-                  color: '#fff',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: '#FFFFFF',
+                  color: '#0F172A',
+                  border: '1px solid rgba(0,0,0,0.08)',
                   borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
                 },
                 success: {
                   iconTheme: {

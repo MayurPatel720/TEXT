@@ -151,7 +151,7 @@ export default function GPUMarketplacePage() {
   return (
     <div className="min-h-screen bg-[var(--bg-secondary)]">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-black via-[#0A0A0A] to-[var(--bg-secondary)] border-b border-white/5">
+      <div className="relative overflow-hidden bg-gradient-to-b from-black via-[#0A0A0A] to-[var(--bg-secondary)] border-b border-[var(--border)]">
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-[var(--accent)]/20 rounded-full blur-[120px]"></div>
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px]"></div>
@@ -205,7 +205,7 @@ export default function GPUMarketplacePage() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 sortBy === 'price'
                   ? 'bg-[var(--accent)] text-white'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  : 'bg-[var(--bg-secondary)] text-gray-400 hover:bg-[var(--bg-elevated)]'
               }`}
             >
               Best Price
@@ -215,7 +215,7 @@ export default function GPUMarketplacePage() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 sortBy === 'reliability'
                   ? 'bg-[var(--accent)] text-white'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  : 'bg-[var(--bg-secondary)] text-gray-400 hover:bg-[var(--bg-elevated)]'
               }`}
             >
               Most Reliable
@@ -225,7 +225,7 @@ export default function GPUMarketplacePage() {
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 sortBy === 'location'
                   ? 'bg-[var(--accent)] text-white'
-                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  : 'bg-[var(--bg-secondary)] text-gray-400 hover:bg-[var(--bg-elevated)]'
               }`}
             >
               Location
@@ -288,7 +288,7 @@ function GPUCard({ gpu, onSelect }: { gpu: GPU; onSelect: (gpu: GPU) => void }) 
   return (
     <motion.div
       whileHover={{ y: -4 }}
-      className="group relative bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-sm rounded-2xl border border-white/10 hover:border-[var(--accent)]/50 transition-all duration-300 overflow-hidden cursor-pointer"
+      className="group relative bg-gradient-to-br from-white/5 to-white/[0.02] backdrop-blur-sm rounded-2xl border border-[var(--border)] hover:border-[var(--accent)]/50 transition-all duration-300 overflow-hidden cursor-pointer"
       onClick={() => onSelect(gpu)}
     >
       {/* Gradient overlay on hover */}
@@ -313,7 +313,7 @@ function GPUCard({ gpu, onSelect }: { gpu: GPU; onSelect: (gpu: GPU) => void }) 
         </div>
 
         {/* Location & Reliability */}
-        <div className="flex justify-between items-center mb-6 pb-6 border-b border-white/5">
+        <div className="flex justify-between items-center mb-6 pb-6 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
             <span className="text-gray-500 text-sm">📍</span>
             <span className="text-white text-sm">{gpu.geolocation}</span>
@@ -392,7 +392,7 @@ function RentalModal({
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-[#0A0A0A] border border-white/10 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="bg-[#0A0A0A] border border-[var(--border)] rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-8">
@@ -442,7 +442,7 @@ function RentalModal({
                 onChange={(e) => setVastApiKey(e.target.value)}
                 placeholder="Enter your Vast.ai API key"
                 disabled={isRenting}
-                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--accent)] transition-colors disabled:opacity-50"
+                className="w-full px-4 py-3 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[var(--accent)] transition-colors disabled:opacity-50"
               />
               <p className="text-xs text-gray-500 mt-2">
                 Your API key is used to rent GPUs on your Vast.ai account
@@ -469,7 +469,7 @@ function RentalModal({
               className="mb-6"
             >
               {/* Progress Bar */}
-              <div className="w-full bg-white/5 rounded-full h-2 mb-6">
+              <div className="w-full bg-[var(--bg-secondary)] rounded-full h-2 mb-6">
                 <motion.div
                   className="bg-[var(--accent)] h-2 rounded-full"
                   initial={{ width: 0 }}
@@ -499,7 +499,7 @@ function RentalModal({
                           </svg>
                         </div>
                       ) : (
-                        <div className="w-6 h-6 bg-white/5 border border-white/10 rounded-full" />
+                        <div className="w-6 h-6 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-full" />
                       )}
                     </div>
 
@@ -537,7 +537,7 @@ function RentalModal({
 
           {/* What Happens Next (show only before renting) */}
           {!isRenting && (
-            <div className="bg-white/5 rounded-xl p-6">
+            <div className="bg-[var(--bg-secondary)] rounded-xl p-6">
               <h3 className="font-semibold text-white mb-4">What happens next:</h3>
               <ol className="space-y-3">
                 {[

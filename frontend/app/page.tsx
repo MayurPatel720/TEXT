@@ -9,89 +9,57 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "@/context/TransitionContext";
 import { PricingSection } from "@/components/PricingSection";
 import ServicesSection from "./ServiceSection";
-
+// Removed TextileBackground
 
 export default function HomePage() {
   const router = useRouter();
   const { triggerTransition } = useTransition();
   
   return (
+    <main className="min-h-screen relative">
+      {/* Fixed Full-Page Background */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-40 mix-blend-multiply pointer-events-none" 
+        style={{ backgroundImage: 'url("/bg.jpeg")' }}
+      />
+      <div className="fixed inset-0 z-0 bg-[var(--bg-primary)]/40 pointer-events-none" />
 
-    <main className="min-h-screen bg-[var(--bg-primary)]">
-      <Header />
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Header />
 
       {/* Hero Section */}
       <section className="relative pt-24 md:pt-32 pb-16 md:pb-24 px-4 sm:px-6 overflow-hidden z-10">
-        {/* Animated gradient background */}
-        <motion.div 
-          className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-pink-900/20 opacity-30 pointer-events-none"
-          animate={{
-            backgroundPosition: ['0% 0%', '100% 100%'],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            repeatType: 'reverse',
-          }}
-        />
-        
-        {/* Floating orbs */}
-        <motion.div 
-          className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl"
-          animate={{
-            y: [0, -30, 0],
-            x: [0, 20, 0],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div 
-          className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"
-          animate={{
-            y: [0, 30, 0],
-            x: [0, -20, 0],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
         
         <div className="max-w-6xl mx-auto text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
+            className="flex flex-col items-center relative"
           >
             <motion.div 
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 mb-8"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--bg-elevated)] border border-[var(--border)] mb-8 relative z-10 backdrop-blur-sm"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
             >
-              <Sparkles className="w-4 h-4 text-purple-400" />
-              <span className="text-sm font-medium bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+              <Sparkles className="w-4 h-4 text-[var(--text-primary)]" />
+              <span className="text-sm font-medium text-[var(--text-primary)]">
                 AI-Powered Design Assistant
               </span>
             </motion.div>
             
             <motion.h1 
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 px-2"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-[var(--text-primary)] mb-6 md:mb-8 relative z-10 py-4 sm:py-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
             >
-              <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
-                Upload Image<br />Get Fabric Pattern
-              </span>
+              Upload Image<br />Get Fabric Pattern
             </motion.h1>
             
             <motion.p 
-              className="text-base sm:text-base md:text-base lg:text-xl text-[var(--text-secondary)] mb-8 md:mb-12 max-w-3xl mx-auto px-2"
+              className="text-lg md:text-xl text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto px-4 relative z-10 font-medium drop-shadow-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.8 }}
@@ -100,7 +68,7 @@ export default function HomePage() {
             </motion.p>
             
             <motion.div 
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center relative z-10"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.6 }}
@@ -114,14 +82,13 @@ export default function HomePage() {
                 <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </button>
 
-              
-              <Link href="#features" className="btn btn-secondary btn-lg">
+              <Link href="#features" className="btn btn-secondary btn-lg bg-white/50 backdrop-blur-md">
                 See How It Works
               </Link>
             </motion.div>
             
             <motion.p 
-              className="text-sm text-[var(--text-tertiary)] mt-6"
+              className="text-sm text-[var(--text-tertiary)] mt-8 relative z-10"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.9, duration: 0.6 }}
@@ -141,12 +108,10 @@ export default function HomePage() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6">
-              <span className="bg-gradient-to-r from-purple-400 via-blue-400 to-teal-400 bg-clip-text text-transparent">
-                Why Choose
-              </span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 text-[var(--text-primary)]">
+              Why Choose
               <br />
-              <span className="text-white">FabricDesigner.AI?</span>
+              FabricDesigner.AI?
             </h2>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-[var(--text-secondary)] max-w-3xl mx-auto leading-relaxed px-2">
               Professional-grade textile design tools powered by cutting-edge AI technology
@@ -188,10 +153,8 @@ export default function HomePage() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6">
-              <span className="bg-gradient-to-r from-blue-400 via-teal-400 to-green-400 bg-clip-text text-transparent">
-                Stunning Results
-              </span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 text-[var(--text-primary)]">
+              Stunning Results
             </h2>
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-[var(--text-secondary)]">
               See what's possible with AI-powered textile design
@@ -202,14 +165,14 @@ export default function HomePage() {
             <ShowcaseCard
               title="Floral Patterns"
               description="Intricate, seamless floral designs for premium fabrics"
-              gradient="from-pink-500/20 to-purple-500/20"
-              icon={<Palette className="w-12 h-12 text-pink-400" />}
+              gradient="from-gray-500/10 to-gray-400/10"
+              icon={<Palette className="w-12 h-12 text-[var(--text-primary)]" />}
             />
             <ShowcaseCard
               title="Geometric Designs"
               description="Modern, bold geometric patterns for contemporary textiles"
-              gradient="from-blue-500/20 to-teal-500/20"
-              icon={<Sparkles className="w-12 h-12 text-teal-400" />}
+              gradient="from-gray-500/10 to-gray-400/10"
+              icon={<Sparkles className="w-12 h-12 text-[var(--text-primary)]" />}
             />
           </div>
         </div>
@@ -226,10 +189,10 @@ export default function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
-            className="relative border border-white/10 rounded-3xl p-8 md:p-12 lg:p-16 bg-gradient-to-br from-[#0A0A0A] to-[#111111]"
+            className="relative border border-[var(--border)] rounded-3xl p-8 md:p-12 lg:p-16 bg-[var(--bg-elevated)] shadow-xl shadow-[var(--accent)]/5"
           >
             {/* Glow effect */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[var(--accent)]/20 rounded-full blur-[120px] opacity-50"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-[var(--accent)]/10 rounded-full blur-[120px] opacity-70"></div>
             
             <div className="relative z-10">
               {/* Badge */}
@@ -252,7 +215,7 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
               >
-                <span className="bg-gradient-to-r from-white via-white to-gray-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-600 bg-clip-text text-transparent">
                   Pay Only for GPU Time.
                   <br />
                   Keep 100% Control.
@@ -260,7 +223,7 @@ export default function HomePage() {
               </motion.h2>
 
               <motion.p 
-                className="text-lg md:text-xl text-gray-400 mb-12 max-w-3xl"
+                className="text-lg md:text-xl text-[var(--text-secondary)] mb-12 max-w-3xl"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
@@ -330,23 +293,23 @@ export default function HomePage() {
 
               {/* Stats */}
               <motion.div 
-                className="mt-12 pt-8 border-t border-white/10 grid grid-cols-3 gap-6"
+                className="mt-12 pt-8 border-t border-[var(--border)] grid grid-cols-3 gap-6"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.7 }}
               >
                 <div>
-                  <div className="text-2xl md:text-3xl font-bold text-white mb-1">$0.29/hr</div>
-                  <div className="text-sm text-gray-500">GPU Starting Price</div>
+                  <div className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-1">$0.29/hr</div>
+                  <div className="text-sm text-[var(--text-secondary)]">GPU Starting Price</div>
                 </div>
                 <div>
-                  <div className="text-2xl md:text-3xl font-bold text-white mb-1">5-10min</div>
-                  <div className="text-sm text-gray-500">Auto Setup Time</div>
+                  <div className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-1">5-10min</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Auto Setup Time</div>
                 </div>
                 <div>
-                  <div className="text-2xl md:text-3xl font-bold text-white mb-1">Unlimited</div>
-                  <div className="text-sm text-gray-500">Generations</div>
+                  <div className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-1">Unlimited</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Generations</div>
                 </div>
               </motion.div>
             </div>
@@ -357,7 +320,8 @@ export default function HomePage() {
       {/* Pricing Section */}
       <PricingSection />
 
-      <Footer />
+        <Footer />
+      </div>
     </main>
   );
 }
@@ -372,12 +336,12 @@ function FeatureCard({ icon, title, description, delay }: { icon: React.ReactNod
       className="group relative h-full"
     >
       <div className="relative p-10 h-full rounded-3xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--border-hover)] transition-all duration-500 flex flex-col">
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-500/0 via-blue-500/0 to-teal-500/0 group-hover:from-purple-500/5 group-hover:via-blue-500/5 group-hover:to-teal-500/5 transition-all duration-500 pointer-events-none" />
+        <div className="absolute inset-0 rounded-3xl bg-[var(--text-primary)] opacity-0 group-hover:opacity-5 transition-all duration-500 pointer-events-none" />
         <div className="relative z-10 flex flex-col h-full">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 border border-[var(--border)] border-opacity-20">
-            <div className="text-purple-400 group-hover:text-blue-400 transition-colors duration-500 [&>svg]:w-8 [&>svg]:h-8">{icon}</div>
+          <div className="w-20 h-20 rounded-2xl bg-[var(--bg-elevated)] flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 border border-[var(--border)] border-opacity-20">
+            <div className="text-[var(--text-primary)] transition-colors duration-500 [&>svg]:w-8 [&>svg]:h-8">{icon}</div>
           </div>
-          <h3 className="text-2xl font-bold mb-4 group-hover:text-white transition-colors duration-300">{title}</h3>
+          <h3 className="text-2xl font-bold mb-4 group-hover:text-[var(--accent)] transition-colors duration-300">{title}</h3>
           <p className="text-[var(--text-secondary)] leading-relaxed text-lg">{description}</p>
         </div>
       </div>
@@ -404,8 +368,8 @@ function ShowcaseCard({ title, description, gradient, icon }: { title: string; d
         </div>
 
         <div>
-          <h3 className="text-3xl font-bold mb-3 text-white group-hover:translate-x-2 transition-transform duration-300">{title}</h3>
-          <p className="text-lg text-[var(--text-secondary)] max-w-md group-hover:text-white transition-colors duration-300">{description}</p>
+          <h3 className="text-3xl font-bold mb-3 text-[var(--text-primary)] transition-transform duration-300">{title}</h3>
+          <p className="text-lg text-[var(--text-secondary)] max-w-md transition-colors duration-300">{description}</p>
         </div>
       </div>
       
@@ -424,12 +388,12 @@ function BenefitCard({ icon, title, description, delay }: { icon: React.ReactNod
       transition={{ delay, duration: 0.5 }}
       className="group"
     >
-      <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-[var(--accent)]/30 transition-all duration-300">
+      <div className="p-6 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-all duration-300">
         <div className="w-12 h-12 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)] mb-4 group-hover:scale-110 transition-transform">
           {icon}
         </div>
-        <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-        <p className="text-sm text-gray-400 leading-relaxed">{description}</p>
+        <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">{title}</h3>
+        <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{description}</p>
       </div>
     </motion.div>
   );
@@ -461,28 +425,28 @@ function PricingCard({ name, price, priceUnit, description, features, cta, href,
       }`}
     >
       {badge && (
-        <div className="absolute -top-4 left-8 px-4 py-1 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-bold tracking-wider uppercase shadow-lg">
+        <div className="absolute -top-4 left-8 px-4 py-1 rounded-full bg-[var(--text-primary)] text-[var(--bg-primary)] text-xs font-bold tracking-wider uppercase shadow-lg">
           {badge}
         </div>
       )}
       
       <div className="mb-8">
-        <h3 className="text-xl font-bold mb-2 text-white">{name}</h3>
+        <h3 className="text-xl font-bold mb-2 text-[var(--text-primary)]">{name}</h3>
         <p className="text-[var(--text-secondary)] text-sm">{description}</p>
       </div>
 
       <div className="mb-8 flex items-baseline gap-1">
-        <span className="text-4xl md:text-5xl font-bold text-white tracking-tight">{price}</span>
+        <span className="text-4xl md:text-5xl font-bold text-[var(--text-primary)] tracking-tight">{price}</span>
         {priceUnit && <span className="text-[var(--text-secondary)]">{priceUnit}</span>}
       </div>
       
       <ul className="space-y-4 mb-8 flex-1">
         {features.map((feature, i) => (
           <li key={i} className="flex items-start gap-3">
-            <div className={`mt-1 rounded-full p-0.5 ${highlighted ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-800 text-gray-400'}`}>
+            <div className={`mt-1 rounded-full p-0.5 ${highlighted ? 'bg-[#0066FF]/20 text-[#0066FF]' : 'bg-[var(--border)] text-[var(--text-secondary)]'}`}>
               <Check className="w-3.5 h-3.5" />
             </div>
-            <span className={`text-sm ${highlighted ? 'text-gray-200' : 'text-gray-400'}`}>{feature}</span>
+            <span className={`text-sm ${highlighted ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>{feature}</span>
           </li>
         ))}
       </ul>
@@ -498,7 +462,7 @@ function PricingCard({ name, price, priceUnit, description, features, cta, href,
         className={`btn w-full py-4 rounded-xl font-semibold text-center transition-all duration-300 ${
           highlighted 
             ? 'btn-primary' 
-            : 'bg-transparent border border-[var(--border)] text-white hover:bg-[var(--bg-elevated)]'
+            : 'bg-transparent border border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]'
         }`}
       >
         {cta}
@@ -514,18 +478,18 @@ function PricingToggle() {
   return (
     <>
       <div className="flex items-center justify-center gap-4 mb-16">
-        <span className={`text-sm font-medium transition-colors ${!isYearly ? 'text-white' : 'text-[var(--text-secondary)]'}`}>
+        <span className={`text-sm font-medium transition-colors ${!isYearly ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
           Monthly
         </span>
         <button
           onClick={() => setIsYearly(!isYearly)}
-          className="relative w-16 h-8 rounded-full bg-[var(--bg-elevated)] border border-[var(--border)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+          className="relative w-16 h-8 rounded-full bg-[var(--bg-elevated)] border border-[var(--border)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--accent)] shadow-inner"
         >
           <div className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-[var(--accent)] transition-transform duration-300 shadow-md ${isYearly ? 'translate-x-8' : 'translate-x-0'}`} />
         </button>
-        <span className={`text-sm font-medium transition-colors ${isYearly ? 'text-white' : 'text-[var(--text-secondary)]'}`}>
+        <span className={`text-sm font-medium transition-colors ${isYearly ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
           Yearly
-          <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 uppercase tracking-wide">Save 20%</span>
+          <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--success-glow)] text-[var(--success)] uppercase tracking-wide">Save 20%</span>
         </span>
       </div>
 

@@ -46,22 +46,22 @@ export function Header() {
   if (isStudio) {
     return (
       <motion.header
-        className="fixed top-0 left-0 right-0 z-50 bg-[#111111] border-b border-white/10"
+        className="fixed top-0 left-0 right-0 z-50 bg-[var(--bg-secondary)] border-b border-[var(--border)]"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
       >
         <div className="h-16 flex items-center justify-between">
           {/* Left side - Desktop: matches sidebar, Mobile: compact */}
-          <div className="hidden md:flex w-80 flex-shrink-0 px-4 items-center gap-3 border-r border-white/10 h-full">
+          <div className="hidden md:flex w-80 flex-shrink-0 px-4 items-center gap-3 border-r border-[var(--border)] h-full">
             <button 
               onClick={() => triggerTransition(() => router.push("/"))}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors group"
+              className="p-2 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors group"
             >
-              <ChevronRight className="w-5 h-5 text-white/50 rotate-180 group-hover:text-white" />
+              <ChevronRight className="w-5 h-5 text-[var(--text-tertiary)] rotate-180 group-hover:text-[var(--text-primary)]" />
             </button>
             <div className="flex items-center gap-2">
               <Image src="/logo.png" alt="FabricDesigner.AI" width={28} height={28} className="object-contain" />
-              <span className="font-semibold text-white">Design Studio</span>
+              <span className="font-semibold text-[var(--text-primary)]">Design Studio</span>
             </div>
           </div>
           
@@ -69,22 +69,22 @@ export function Header() {
           <div className="flex md:hidden items-center gap-3 px-4">
             <button 
               onClick={() => triggerTransition(() => router.push("/"))}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-2 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
             >
-              <ChevronRight className="w-5 h-5 text-white/50 rotate-180" />
+              <ChevronRight className="w-5 h-5 text-[var(--text-tertiary)] rotate-180" />
             </button>
             <div className="flex items-center gap-2">
               <Image src="/logo.png" alt="FabricDesigner.AI" width={24} height={24} className="object-contain" />
-              <span className="font-medium text-white text-sm">Studio</span>
+              <span className="font-medium text-[var(--text-primary)] text-sm">Studio</span>
             </div>
           </div>
           
           {/* Right side - main content area */}
           <div className="flex-1 px-6 flex items-center justify-end gap-4">
             {/* Credits Badge */}
-            <div className="hidden md:flex items-center gap-2 bg-[#1a1a1a] px-3 py-1.5 rounded-full border border-white/10">
+            <div className="hidden md:flex items-center gap-2 bg-[var(--bg-elevated)] px-3 py-1.5 rounded-full border border-[var(--border)]">
               <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
-              <span className="text-sm font-medium text-white/80">
+              <span className="text-sm font-medium text-[var(--text-primary)]">
                 {session?.user?.credits !== undefined ? `${session.user.credits} credits` : '...'}
               </span>
             </div>
@@ -94,22 +94,22 @@ export function Header() {
               <div className="relative">
                 <button 
                   onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                  className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-white/10 hover:border-[var(--accent)] transition-all cursor-pointer flex items-center justify-center text-white text-sm font-semibold"
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-[var(--border)] hover:border-[var(--accent)] transition-all cursor-pointer flex items-center justify-center text-white text-sm font-semibold"
                 >
                   {session.user?.name?.[0] || "U"}
                 </button>
                 {profileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl py-2 overflow-hidden">
-                    <div className="px-4 py-3 border-b border-white/10 bg-white/5">
+                  <div className="absolute right-0 mt-2 w-52 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl shadow-2xl py-2 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--bg-secondary)]">
                       <p className="text-sm font-medium text-white">{session.user?.name}</p>
-                      <p className="text-xs text-white/50 mt-0.5 truncate">{session.user?.email}</p>
+                      <p className="text-xs text-[var(--text-tertiary)] mt-0.5 truncate">{session.user?.email}</p>
                     </div>
                     <button 
                       onClick={() => {
                         setProfileMenuOpen(false);
                         triggerTransition(() => router.push("/gpu-marketplace"));
                       }}
-                      className="w-full px-4 py-2.5 text-sm text-left hover:bg-white/5 flex items-center gap-3 text-white/80"
+                      className="w-full px-4 py-2.5 text-sm text-left hover:bg-[var(--bg-secondary)] flex items-center gap-3 text-[var(--text-primary)]"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
@@ -121,12 +121,12 @@ export function Header() {
                         setProfileMenuOpen(false);
                         triggerTransition(() => router.push("/history"));
                       }}
-                      className="w-full px-4 py-2.5 text-sm text-left hover:bg-white/5 flex items-center gap-3 text-white/80"
+                      className="w-full px-4 py-2.5 text-sm text-left hover:bg-[var(--bg-secondary)] flex items-center gap-3 text-[var(--text-primary)]"
                     >
                       <Clock className="w-4 h-4" />
                       History
                     </button>
-                    <button onClick={handleSignOut} className="w-full px-4 py-2.5 text-sm text-left hover:bg-white/5 flex items-center gap-3 text-red-400">
+                    <button onClick={handleSignOut} className="w-full px-4 py-2.5 text-sm text-left hover:bg-[var(--bg-secondary)] flex items-center gap-3 text-red-400">
                       <LogOut className="w-4 h-4" />
                       Sign Out
                     </button>
@@ -175,7 +175,7 @@ export function Header() {
               <TransitionLink
                 key={link.name}
                 href={link.href}
-                className="text-sm font-medium text-[var(--text-secondary)] hover:text-white transition-colors relative group"
+                className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors relative group"
               >
                 {link.name}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[var(--accent)] transition-all group-hover:w-full" />
@@ -249,7 +249,7 @@ export function Header() {
               </div>
             ) : (
               <>
-                <TransitionLink href="/login" className="text-sm font-medium text-[var(--text-secondary)] hover:text-white transition-colors">
+                <TransitionLink href="/login" className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors">
                   Sign In
                 </TransitionLink>
 
@@ -266,7 +266,7 @@ export function Header() {
 
           {/* Mobile Menu Toggle */}
           <button 
-            className="md:hidden p-2 text-[var(--text-secondary)] hover:text-white"
+            className="md:hidden p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             onClick={() => setMobileMenuOpen(true)}
           >
             <Menu className="w-6 h-6" />

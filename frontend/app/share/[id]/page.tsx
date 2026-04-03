@@ -213,7 +213,7 @@ export default function SharePage({ params }: { params: { id: string } }) {
   `;
 
     return (
-        <main className="min-h-screen bg-[#0a0a0a]">
+        <main className="min-h-screen bg-[var(--bg-primary)]">
             {/* Razorpay Script */}
             <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
             <style dangerouslySetInnerHTML={{ __html: watermarkStyles }} />
@@ -223,9 +223,9 @@ export default function SharePage({ params }: { params: { id: string } }) {
 
                 {/* Left Side: Watermarked Image Preview */}
                 <div className="flex-1 w-full relative">
-                    <div className="aspect-square w-full rounded-2xl overflow-hidden bg-[#111111] border border-white/10 relative select-none shadow-2xl">
+                    <div className="aspect-square w-full rounded-2xl overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border)] relative select-none shadow-2xl">
                         {loading ? (
-                            <div className="w-full h-full flex flex-col items-center justify-center text-white/30">
+                            <div className="w-full h-full flex flex-col items-center justify-center text-[var(--text-tertiary)]">
                                 <Loader2 className="w-8 h-8 animate-spin mb-4" />
                                 <p>Loading design preview...</p>
                             </div>
@@ -235,7 +235,7 @@ export default function SharePage({ params }: { params: { id: string } }) {
                                 <p>{error}</p>
                             </div>
                         ) : unlockedUrl ? (
-                            <div className="relative w-full h-full flex flex-col items-center justify-center bg-black">
+                            <div className="relative w-full h-full flex flex-col items-center justify-center bg-[var(--bg-primary)]">
                                 <img
                                     src={unlockedUrl}
                                     alt="Unlocked Design"
@@ -279,10 +279,10 @@ export default function SharePage({ params }: { params: { id: string } }) {
 
                                 {/* Blackout layer for when window loses focus (screenshot tools) */}
                                 {isObscured && (
-                                    <div className="absolute inset-0 z-[100] bg-black/90 backdrop-blur-3xl flex flex-col items-center justify-center text-white transition-all duration-200">
+                                    <div className="absolute inset-0 z-[100] bg-[var(--bg-primary)]/90 backdrop-blur-3xl flex flex-col items-center justify-center text-[var(--text-primary)] transition-all duration-200">
                                         <AlertCircle className="w-16 h-16 text-red-500 mb-4 animate-pulse" />
                                         <h2 className="text-2xl font-black mb-2 uppercase tracking-widest text-red-500 text-center px-4">Security Alert</h2>
-                                        <p className="text-white/80 font-medium text-center px-6">Screenshots are strictly prohibited.<br />Please return to the window.</p>
+                                        <p className="text-[var(--text-primary)] font-medium text-center px-6">Screenshots are strictly prohibited.<br />Please return to the window.</p>
                                     </div>
                                 )}
                             </div>
@@ -291,10 +291,10 @@ export default function SharePage({ params }: { params: { id: string } }) {
                 </div>
 
                 {/* Right Side: Purchase/Download Controls */}
-                <div className="w-full md:w-[320px] shrink-0 bg-[#111111] border border-white/10 rounded-2xl p-6 flex flex-col shadow-xl">
+                <div className="w-full md:w-[320px] shrink-0 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-2xl p-6 flex flex-col shadow-xl">
                     <div className="mb-6">
-                        <h1 className="text-xl font-bold text-white mb-2">Exclusive AI Textile Design</h1>
-                        <p className="text-sm text-white/60">
+                        <h1 className="text-xl font-bold text-[var(--text-primary)] mb-2">Exclusive AI Textile Design</h1>
+                        <p className="text-sm text-[var(--text-secondary)]">
                             This is a protected preview. The creator of this design has shared it with you for approval.
                         </p>
                     </div>
@@ -302,7 +302,7 @@ export default function SharePage({ params }: { params: { id: string } }) {
                     <div className="bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded-xl p-4 mb-6">
                         <div className="flex items-start gap-3">
                             <Info className="w-5 h-5 text-[var(--accent)] shrink-0 mt-0.5" />
-                            <div className="text-sm text-white/80">
+                            <div className="text-sm text-[var(--text-primary)]">
                                 <strong className="text-[var(--accent)] block mb-1">Commercial License (₹100)</strong>
                                 Purchase the original, unwatermarked, 300 DPI high-resolution file perfectly suited for industrial fabric printing.
                             </div>
@@ -349,7 +349,7 @@ export default function SharePage({ params }: { params: { id: string } }) {
                                 <button
                                     disabled
                                     title="Purchase required to unlock"
-                                    className="w-full py-3 rounded-xl bg-white/5 text-white/40 font-medium flex items-center justify-center gap-2 border border-white/10 cursor-not-allowed text-sm"
+                                    className="w-full py-3 rounded-xl bg-[var(--bg-secondary)] text-[var(--text-tertiary)] font-medium flex items-center justify-center gap-2 border border-[var(--border)] cursor-not-allowed text-sm"
                                 >
                                     <Download className="w-4 h-4" />
                                     Download Free Preview (Disabled)

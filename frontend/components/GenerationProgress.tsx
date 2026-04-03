@@ -47,7 +47,7 @@ export function GenerationProgress({
       {/* Progress Bar */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-white/70">
+          <span className="text-sm text-[var(--text-secondary)]">
             {isGenerating ? "Generating designs..." : "Complete"}
           </span>
           <span className="text-sm text-[var(--accent)] font-medium">
@@ -55,7 +55,7 @@ export function GenerationProgress({
           </span>
         </div>
         
-        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+        <div className="h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
           <motion.div
             className="h-full bg-gradient-to-r from-[var(--accent)] to-[#0052cc]"
             initial={{ width: 0 }}
@@ -73,7 +73,7 @@ export function GenerationProgress({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="p-4 rounded-xl bg-[#111111] border border-white/10"
+            className="p-4 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)]"
           >
             <div className="flex items-center gap-3">
               {currentJob.status === "pending" && (
@@ -84,7 +84,7 @@ export function GenerationProgress({
                       Waiting in queue...
                     </p>
                     {currentJob.queuePosition && (
-                      <p className="text-xs text-white/50">
+                      <p className="text-xs text-[var(--text-tertiary)]">
                         Position #{currentJob.queuePosition} • 
                         Est. {Math.ceil((currentJob.estimatedWait || 35) / 60)} min
                       </p>
@@ -100,7 +100,7 @@ export function GenerationProgress({
                     <p className="text-sm font-medium text-white">
                       AI is creating your design...
                     </p>
-                    <p className="text-xs text-white/50">
+                    <p className="text-xs text-[var(--text-tertiary)]">
                       This usually takes ~30-40 seconds
                     </p>
                   </div>
@@ -162,7 +162,7 @@ export function GenerationProgress({
                   ? "bg-[var(--accent)]/20 text-[var(--accent)]"
                   : job.status === "failed"
                   ? "bg-red-500/20 text-red-400"
-                  : "bg-white/10 text-white/50"
+                  : "bg-[var(--bg-elevated)] text-[var(--text-tertiary)]"
               }`}
             >
               {job.status === "processing" && (
@@ -181,7 +181,7 @@ export function GenerationProgress({
 
       {/* GPU Info */}
       {isGenerating && (
-        <div className="flex items-center justify-center gap-2 mt-4 text-xs text-white/30">
+        <div className="flex items-center justify-center gap-2 mt-4 text-xs text-[var(--text-tertiary)]">
           <Zap className="w-3 h-3" />
           <span>Powered by RTX 4090 • FLUX Kontext Dev</span>
         </div>

@@ -173,7 +173,7 @@ export default function WorkflowSelector({ selected, onSelect }: WorkflowSelecto
               relative p-3 rounded-xl text-left transition-all duration-200
               ${selected === workflow.id 
                 ? 'bg-gradient-to-br from-[var(--accent)]/20 to-[var(--accent)]/5 border-2 border-[var(--accent)] shadow-lg shadow-[var(--accent)]/10' 
-                : 'bg-[#1a1a1a] border border-white/10 hover:border-white/20 hover:bg-white/5'
+                : 'bg-[var(--bg-elevated)] border border-[var(--border)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-secondary)]'
               }
             `}
           >
@@ -181,17 +181,17 @@ export default function WorkflowSelector({ selected, onSelect }: WorkflowSelecto
               <div 
                 className={`
                   p-1.5 rounded-lg
-                  ${selected === workflow.id ? 'bg-[var(--accent)]/20 text-[var(--accent)]' : 'bg-white/5 text-white/60'}
+                  ${selected === workflow.id ? 'bg-[var(--accent)]/20 text-[var(--accent)]' : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)]'}
                 `}
                 style={{ color: selected === workflow.id ? workflow.color : undefined }}
               >
                 {workflow.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium ${selected === workflow.id ? 'text-white' : 'text-white/80'}`}>
+                <p className={`text-sm font-medium ${selected === workflow.id ? 'text-white' : 'text-[var(--text-primary)]'}`}>
                   {workflow.name}
                 </p>
-                <p className="text-xs text-white/40 truncate">
+                <p className="text-xs text-[var(--text-tertiary)] truncate">
                   {workflow.description}
                 </p>
               </div>
@@ -200,7 +200,7 @@ export default function WorkflowSelector({ selected, onSelect }: WorkflowSelecto
             {/* Input indicator */}
             <div className={`
               absolute top-2 right-2 text-[10px] px-1.5 py-0.5 rounded-full
-              ${workflow.inputs === 2 ? 'bg-[var(--accent)]/20 text-[var(--accent)]' : 'bg-white/10 text-white/40'}
+              ${workflow.inputs === 2 ? 'bg-[var(--accent)]/20 text-[var(--accent)]' : 'bg-[var(--bg-elevated)] text-[var(--text-tertiary)]'}
             `}>
               {workflow.inputs === 2 ? '2 IMG' : '1 IMG'}
             </div>

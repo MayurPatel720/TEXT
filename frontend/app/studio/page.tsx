@@ -76,11 +76,11 @@ const Slider = ({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-white/60">{label}</span>
+          <span className="text-xs text-[var(--text-secondary)]">{label}</span>
           {helpText && (
             <div className="group relative">
-              <HelpCircle className="w-3 h-3 text-white/30 cursor-help" />
-              <div className="absolute left-0 bottom-full mb-2 w-48 p-2 rounded-lg bg-[#222] border border-white/10 text-xs text-white/70 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
+              <HelpCircle className="w-3 h-3 text-[var(--text-tertiary)] cursor-help" />
+              <div className="absolute left-0 bottom-full mb-2 w-48 p-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border)] text-xs text-[var(--text-secondary)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none">
                 {helpText}
               </div>
             </div>
@@ -89,7 +89,7 @@ const Slider = ({
         <span className="text-xs text-[var(--accent)] font-medium tabular-nums">{displayValue}</span>
       </div>
       <div className="relative h-6 flex items-center">
-        <div className="absolute inset-x-0 h-2 bg-white/10 rounded-full overflow-hidden">
+        <div className="absolute inset-x-0 h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent)]/70 rounded-full transition-all duration-75"
             style={{ width: `${percentage}%` }}
@@ -117,8 +117,8 @@ const Slider = ({
 // Tooltip component for info
 const InfoTooltip = ({ text }: { text: string }) => (
   <div className="group relative inline-flex">
-    <Info className="w-3.5 h-3.5 text-white/30 cursor-help" />
-    <div className="absolute left-0 bottom-full mb-2 w-52 p-2.5 rounded-lg bg-[#1a1a1a] border border-white/10 text-xs text-white/70 leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none shadow-xl">
+    <Info className="w-3.5 h-3.5 text-[var(--text-tertiary)] cursor-help" />
+    <div className="absolute left-0 bottom-full mb-2 w-52 p-2.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border)] text-xs text-[var(--text-secondary)] leading-relaxed opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 pointer-events-none shadow-xl">
       {text}
     </div>
   </div>
@@ -507,16 +507,16 @@ export default function StudioPage() {
     onToggle: () => void;
     children: React.ReactNode;
   }) => (
-    <div className="border-b border-white/5">
+    <div className="border-b border-[var(--border)]">
       <button
         onClick={onToggle}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-[var(--bg-secondary)] transition-colors"
       >
-        <div className="flex items-center gap-2 text-sm font-medium text-white/90">
+        <div className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
           <Icon className="w-4 h-4 text-[var(--accent)]" />
           {title}
         </div>
-        {isOpen ? <ChevronUp className="w-4 h-4 text-white/50" /> : <ChevronDown className="w-4 h-4 text-white/50" />}
+        {isOpen ? <ChevronUp className="w-4 h-4 text-[var(--text-tertiary)]" /> : <ChevronDown className="w-4 h-4 text-[var(--text-tertiary)]" />}
       </button>
       {isOpen && (
         <div className="px-4 pb-4 space-y-4">
@@ -587,7 +587,7 @@ export default function StudioPage() {
   `;
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a]">
+    <main className="min-h-screen bg-[var(--bg-primary)]">
       <style>{watermarkStyles}</style>
       <Header />
 
@@ -629,7 +629,7 @@ export default function StudioPage() {
                   ? 'fixed left-0 top-0 bottom-0 z-50 w-[320px] pt-16'
                   : 'relative flex-shrink-0'
                 }
-                border-r border-white/10 bg-[#111111] flex flex-col overflow-hidden
+                border-r border-[var(--border)] bg-[var(--bg-secondary)] flex flex-col overflow-hidden
               `}
               style={!isMobile ? { width: sidebarWidth } : undefined}
             >
@@ -637,7 +637,7 @@ export default function StudioPage() {
               {isMobile && (
                 <button
                   onClick={() => setIsMobileSidebarOpen(false)}
-                  className="absolute top-20 right-3 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors z-10"
+                  className="absolute top-20 right-3 p-2 rounded-lg bg-[var(--bg-elevated)] hover:bg-[var(--border-hover)] transition-colors z-10"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -645,7 +645,7 @@ export default function StudioPage() {
 
               <div className="flex-1 overflow-y-auto scrollbar-thin">
                 {/* Workflow Selector */}
-                <div className="p-4 border-b border-white/5">
+                <div className="p-4 border-b border-[var(--border)]">
                   <WorkflowSelector
                     selected={selectedWorkflow.id}
                     onSelect={(workflow) => {
@@ -657,7 +657,7 @@ export default function StudioPage() {
                     }}
                   />
                   {/* Show input requirement */}
-                  <p className="text-xs text-white/40 mt-2 flex items-center gap-1">
+                  <p className="text-xs text-[var(--text-tertiary)] mt-2 flex items-center gap-1">
                     <Info className="w-3 h-3" />
                     {selectedWorkflow.inputs === 2
                       ? "Upload 2 images for this workflow"
@@ -666,8 +666,8 @@ export default function StudioPage() {
                 </div>
 
                 {/* Prompt Section */}
-                <div className="p-4 border-b border-white/5">
-                  <label className="flex items-center gap-2 text-sm font-medium mb-3 text-white/90">
+                <div className="p-4 border-b border-[var(--border)]">
+                  <label className="flex items-center gap-2 text-sm font-medium mb-3 text-[var(--text-primary)]">
                     <Wand2 className="w-4 h-4 text-[var(--accent)]" />
                     Prompt
                   </label>
@@ -675,7 +675,7 @@ export default function StudioPage() {
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder={selectedWorkflow.promptTemplate || "Describe your textile design..."}
-                    className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-3 text-sm text-white placeholder-white/30 resize-none focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                    className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-3.5 py-3 text-sm text-white placeholder-[var(--text-tertiary)] resize-none focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
                     rows={3}
                   />
                   {/* Use Template Button */}
@@ -693,7 +693,7 @@ export default function StudioPage() {
                       <button
                         key={tag}
                         onClick={() => setPrompt(prev => prev ? `${prev}, ${tag.toLowerCase()}` : tag.toLowerCase())}
-                        className="text-xs px-2.5 py-1.5 rounded-lg bg-[#1a1a1a] text-white/60 hover:bg-[var(--accent)]/20 hover:text-[var(--accent)] border border-white/5 hover:border-[var(--accent)]/30 transition-all"
+                        className="text-xs px-2.5 py-1.5 rounded-lg bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--accent)]/20 hover:text-[var(--accent)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-all"
                       >
                         + {tag}
                       </button>
@@ -715,7 +715,7 @@ export default function StudioPage() {
                         key={img.id}
                         className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all group ${selectedRefImage === img.id
                           ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/30'
-                          : 'border-transparent hover:border-white/20'
+                          : 'border-transparent hover:border-[var(--border-hover)]'
                           }`}
                         onClick={() => setSelectedRefImage(img.id)}
                       >
@@ -744,7 +744,7 @@ export default function StudioPage() {
 
                     {/* Add More Button */}
                     <div
-                      className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${isDragging ? 'border-[var(--accent)] bg-[var(--accent)]/10' : 'border-white/20 hover:border-[var(--accent)] hover:bg-white/5'
+                      className={`aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all ${isDragging ? 'border-[var(--accent)] bg-[var(--accent)]/10' : 'border-[var(--border-hover)] hover:border-[var(--accent)] hover:bg-[var(--bg-secondary)]'
                         }`}
                       onDrop={handleDrop}
                       onDragOver={handleDragOver}
@@ -759,12 +759,12 @@ export default function StudioPage() {
                         className="hidden"
                         onChange={(e) => e.target.files && handleFiles(e.target.files)}
                       />
-                      <Plus className="w-5 h-5 text-white/40" />
+                      <Plus className="w-5 h-5 text-[var(--text-tertiary)]" />
                     </div>
                   </div>
 
                   {referenceImages.length === 0 && (
-                    <p className="text-xs text-white/40 text-center mt-2">
+                    <p className="text-xs text-[var(--text-tertiary)] text-center mt-2">
                       Drop images or click + to upload
                     </p>
                   )}
@@ -803,7 +803,7 @@ export default function StudioPage() {
                 >
                   {/* Number of Images */}
                   <div>
-                    <span className="text-xs text-white/60 block mb-2">Number of Images</span>
+                    <span className="text-xs text-[var(--text-secondary)] block mb-2">Number of Images</span>
                     <div className="flex gap-2">
                       {[1, 2, 4, 6].map(num => (
                         <button
@@ -811,7 +811,7 @@ export default function StudioPage() {
                           onClick={() => setNumVariations(num)}
                           className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${numVariations === num
                             ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
-                            : 'bg-[#1a1a1a] text-white/60 hover:bg-white/10 border border-white/5'
+                            : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] border border-[var(--border)]'
                             }`}
                         >
                           {num}
@@ -822,7 +822,7 @@ export default function StudioPage() {
 
                   {/* Aspect Ratio */}
                   <div>
-                    <span className="text-xs text-white/60 block mb-2">Aspect Ratio</span>
+                    <span className="text-xs text-[var(--text-secondary)] block mb-2">Aspect Ratio</span>
                     <div className="grid grid-cols-4 gap-2">
                       {["1:1", "16:9", "4:3", "3:2"].map(ratio => (
                         <button
@@ -830,7 +830,7 @@ export default function StudioPage() {
                           onClick={() => setAspectRatio(ratio)}
                           className={`py-2 rounded-xl text-xs font-medium transition-all ${aspectRatio === ratio
                             ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
-                            : 'bg-[#1a1a1a] text-white/60 hover:bg-white/10 border border-white/5'
+                            : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] border border-[var(--border)]'
                             }`}
                         >
                           {ratio}
@@ -841,7 +841,7 @@ export default function StudioPage() {
 
                   {/* Output Format */}
                   <div>
-                    <span className="text-xs text-white/60 block mb-2">Format</span>
+                    <span className="text-xs text-[var(--text-secondary)] block mb-2">Format</span>
                     <div className="flex gap-2">
                       {[
                         { value: "png", label: "PNG", desc: "Lossless" },
@@ -853,7 +853,7 @@ export default function StudioPage() {
                           onClick={() => setOutputFormat(format.value)}
                           className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all ${outputFormat === format.value
                             ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
-                            : 'bg-[#1a1a1a] text-white/60 hover:bg-white/10 border border-white/5'
+                            : 'bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] border border-[var(--border)]'
                             }`}
                         >
                           {format.label}
@@ -871,18 +871,18 @@ export default function StudioPage() {
                   onToggle={() => setShowAdvanced(!showAdvanced)}
                 >
                   {/* Info banner */}
-                  <div className="p-3 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-xs text-white/70 leading-relaxed">
+                  <div className="p-3 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 text-xs text-[var(--text-secondary)] leading-relaxed">
                     <div className="flex items-start gap-2">
                       <Info className="w-4 h-4 text-[var(--accent)] flex-shrink-0 mt-0.5" />
-                      <span>Fine-tune generation parameters. Hover over <HelpCircle className="w-3 h-3 inline text-white/40" /> icons for explanations.</span>
+                      <span>Fine-tune generation parameters. Hover over <HelpCircle className="w-3 h-3 inline text-[var(--text-tertiary)]" /> icons for explanations.</span>
                     </div>
                   </div>
 
                   {/* Seed */}
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <Hash className="w-3.5 h-3.5 text-white/40" />
-                      <span className="text-xs text-white/60">Seed</span>
+                      <Hash className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+                      <span className="text-xs text-[var(--text-secondary)]">Seed</span>
                       <InfoTooltip text="A seed number ensures reproducible results. Using the same seed with the same settings will generate the same image. Leave empty for random variations each time." />
                     </div>
                     <input
@@ -890,7 +890,7 @@ export default function StudioPage() {
                       value={seed}
                       onChange={(e) => setSeed(e.target.value)}
                       placeholder="Leave empty for random"
-                      className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                      className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
                     />
                   </div>
 
@@ -933,8 +933,8 @@ export default function StudioPage() {
                   {/* Negative Prompt */}
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <X className="w-3.5 h-3.5 text-white/40" />
-                      <span className="text-xs text-white/60">Negative Prompt</span>
+                      <X className="w-3.5 h-3.5 text-[var(--text-tertiary)]" />
+                      <span className="text-xs text-[var(--text-secondary)]">Negative Prompt</span>
                       <InfoTooltip text="Describe what you DON'T want in the image. e.g. 'blurry, watermark, low quality, distorted'" />
                     </div>
                     <textarea
@@ -942,14 +942,14 @@ export default function StudioPage() {
                       onChange={(e) => setNegativePrompt(e.target.value)}
                       placeholder="ugly, blurry, bad quality, distorted..."
                       rows={2}
-                      className="w-full bg-[#1a1a1a] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all resize-none"
+                      className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all resize-none"
                     />
                   </div>
                 </CollapsibleSection>
               </div>
 
               {/* Bottom Fixed Section */}
-              <div className="p-4 border-t border-white/10 bg-[#111111]">
+              <div className="p-4 border-t border-[var(--border)] bg-[var(--bg-secondary)]">
                 <button
                   onClick={handleGenerate}
                   disabled={referenceImages.length === 0 || !prompt.trim() || status === "generating"}
@@ -970,7 +970,7 @@ export default function StudioPage() {
 
                 {/* Progress bar */}
                 {status === "generating" && (
-                  <div className="mt-3 w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className="mt-3 w-full h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
                     <motion.div
                       className="h-full bg-gradient-to-r from-[var(--accent)] to-[#0052cc]"
                       initial={{ width: 0 }}
@@ -988,7 +988,7 @@ export default function StudioPage() {
                 )}
 
                 {/* Credits */}
-                <p className="text-xs text-white/40 text-center mt-3">
+                <p className="text-xs text-[var(--text-tertiary)] text-center mt-3">
                   <Zap className="w-3 h-3 inline mr-1" />
                   1 credit per image • {numVariations} credits total
                 </p>
@@ -1002,7 +1002,7 @@ export default function StudioPage() {
                     }`}
                 >
                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-8 -mr-1.5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <GripVertical className="w-3 h-3 text-white/40" />
+                    <GripVertical className="w-3 h-3 text-[var(--text-tertiary)]" />
                   </div>
                 </div>
               )}
@@ -1011,10 +1011,10 @@ export default function StudioPage() {
         </AnimatePresence>
 
         {/* Right Main Panel */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[#0a0a0a]">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[var(--bg-primary)]">
           {/* Large Preview */}
           <div className="mb-8">
-            <div className="aspect-square max-w-xl mx-auto rounded-2xl overflow-hidden bg-[#111111] border border-white/10 relative select-none">
+            <div className="aspect-square max-w-xl mx-auto rounded-2xl overflow-hidden bg-[var(--bg-secondary)] border border-[var(--border)] relative select-none">
               {selectedVariation && (selectedVariation.url || selectedVariation.imageUrl) ? (
                 <div
                   className="relative w-full h-full"
@@ -1038,7 +1038,7 @@ export default function StudioPage() {
 
                   {/* Seed badge */}
                   {selectedVariation.seed && (
-                    <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/80 text-xs text-white z-40 backdrop-blur-sm border border-white/10 shadow-xl pointer-events-auto">
+                    <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/80 text-xs text-white z-40 backdrop-blur-sm border border-[var(--border)] shadow-xl pointer-events-auto">
                       Seed: #{selectedVariation.seed}
                     </div>
                   )}
@@ -1055,7 +1055,7 @@ export default function StudioPage() {
                         setSelectedWorkflow(WORKFLOWS.find(w => w.id === 'model_mockup')!);
                         setPrompt(WORKFLOWS.find(w => w.id === 'model_mockup')?.promptTemplate || "");
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-[#10B981]/90 hover:bg-[#10B981] text-white text-xs font-medium backdrop-blur-sm transition-all flex items-center gap-1.5 shadow-xl border border-white/10"
+                      className="px-3 py-1.5 rounded-lg bg-[#10B981]/90 hover:bg-[#10B981] text-white text-xs font-medium backdrop-blur-sm transition-all flex items-center gap-1.5 shadow-xl border border-[var(--border)]"
                       title="Generate model wearing this design"
                     >
                       <User className="w-3.5 h-3.5" />
@@ -1071,7 +1071,7 @@ export default function StudioPage() {
                         setSelectedWorkflow(WORKFLOWS.find(w => w.id === 'extract_pattern')!);
                         setPrompt(WORKFLOWS.find(w => w.id === 'extract_pattern')?.promptTemplate || "");
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-[#6366F1]/90 hover:bg-[#6366F1] text-white text-xs font-medium backdrop-blur-sm transition-all flex items-center gap-1.5 shadow-xl border border-white/10"
+                      className="px-3 py-1.5 rounded-lg bg-[#6366F1]/90 hover:bg-[#6366F1] text-white text-xs font-medium backdrop-blur-sm transition-all flex items-center gap-1.5 shadow-xl border border-[var(--border)]"
                       title="Extract flat tileable pattern"
                     >
                       <Grid3X3 className="w-3.5 h-3.5" />
@@ -1088,12 +1088,12 @@ export default function StudioPage() {
                     fill
                     className="object-contain"
                   />
-                  <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 text-xs text-white/80 backdrop-blur-sm">
+                  <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 text-xs text-[var(--text-primary)] backdrop-blur-sm">
                     Reference Image
                   </div>
                 </div>
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-white/30">
+                <div className="w-full h-full flex flex-col items-center justify-center text-[var(--text-tertiary)]">
                   <ImageIcon className="w-16 h-16 mb-4 opacity-30" />
                   <p className="text-lg font-medium">No image yet</p>
                   <p className="text-sm">Upload a reference and generate designs</p>
@@ -1107,7 +1107,7 @@ export default function StudioPage() {
             <div className="max-w-xl mx-auto">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-medium text-white">Generated Designs</h3>
-                <span className="text-sm text-white/50">
+                <span className="text-sm text-[var(--text-tertiary)]">
                   {selectedIds.length} selected
                 </span>
               </div>
@@ -1121,7 +1121,7 @@ export default function StudioPage() {
                     transition={{ delay: i * 0.05 }}
                     className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all ${selectedVariation?.id === variation.id
                       ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/30'
-                      : 'border-transparent hover:border-white/20'
+                      : 'border-transparent hover:border-[var(--border-hover)]'
                       }`}
                     onClick={() => selectForPreview(variation)}
                   >
@@ -1157,7 +1157,7 @@ export default function StudioPage() {
                   onClick={handleDownload}
                   disabled={selectedIds.length === 0}
                   title="Payment required to download high-res files"
-                  className="w-full py-2.5 rounded-xl bg-white/5 text-white/50 font-medium flex items-center justify-center gap-1.5 transition-all text-xs lg:text-sm border border-white/10 cursor-not-allowed"
+                  className="w-full py-2.5 rounded-xl bg-[var(--bg-secondary)] text-[var(--text-tertiary)] font-medium flex items-center justify-center gap-1.5 transition-all text-xs lg:text-sm border border-[var(--border)] cursor-not-allowed"
                 >
                   <Download className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">Download Pro</span>
@@ -1176,7 +1176,7 @@ export default function StudioPage() {
                 <button
                   onClick={useAsReference}
                   disabled={!selectedVariation}
-                  className="w-full py-2.5 rounded-xl bg-white/10 text-white font-medium flex items-center justify-center gap-1.5 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs lg:text-sm"
+                  className="w-full py-2.5 rounded-xl bg-[var(--bg-elevated)] text-white font-medium flex items-center justify-center gap-1.5 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs lg:text-sm"
                   title="Use selected image as new reference"
                 >
                   <RefreshCw className="w-3.5 h-3.5 shrink-0" />
@@ -1185,7 +1185,7 @@ export default function StudioPage() {
 
                 <button
                   onClick={handleGenerate}
-                  className="w-full py-2.5 rounded-xl bg-white/10 text-white font-medium flex items-center justify-center gap-1.5 hover:bg-white/15 transition-all text-xs lg:text-sm"
+                  className="w-full py-2.5 rounded-xl bg-[var(--bg-elevated)] text-white font-medium flex items-center justify-center gap-1.5 hover:bg-white/15 transition-all text-xs lg:text-sm"
                 >
                   <Sparkles className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">Regenerate</span>

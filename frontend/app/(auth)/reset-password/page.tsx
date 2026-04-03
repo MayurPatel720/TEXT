@@ -146,16 +146,16 @@ function ResetPasswordForm() {
                 type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="••••••••"
-                className={`w-full bg-[#1a1a1a] border rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-white/30 focus:outline-none transition-all ${
+                className={`w-full bg-[var(--bg-elevated)] border rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-[var(--text-tertiary)] focus:outline-none transition-all ${
                   errors.password && touched.password
                     ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-                    : "border-white/10 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
+                    : "border-[var(--border)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -165,7 +165,7 @@ function ResetPasswordForm() {
               component="p"
               className="mt-1.5 text-xs text-red-400"
             />
-            <p className="text-xs text-white/40 mt-1">
+            <p className="text-xs text-[var(--text-tertiary)] mt-1">
               Min 8 characters with uppercase, lowercase & number
             </p>
           </div>
@@ -178,16 +178,16 @@ function ResetPasswordForm() {
                 type={showConfirmPassword ? "text" : "password"}
                 name="confirmPassword"
                 placeholder="••••••••"
-                className={`w-full bg-[#1a1a1a] border rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-white/30 focus:outline-none transition-all ${
+                className={`w-full bg-[var(--bg-elevated)] border rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-[var(--text-tertiary)] focus:outline-none transition-all ${
                   errors.confirmPassword && touched.confirmPassword
                     ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-                    : "border-white/10 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
+                    : "border-[var(--border)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
               >
                 {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
