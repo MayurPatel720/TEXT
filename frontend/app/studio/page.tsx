@@ -675,7 +675,7 @@ export default function StudioPage() {
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder={selectedWorkflow.promptTemplate || "Describe your textile design..."}
-                    className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-3.5 py-3 text-sm text-white placeholder-[var(--text-tertiary)] resize-none focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                    className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-3.5 py-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] resize-none focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
                     rows={3}
                   />
                   {/* Use Template Button */}
@@ -890,7 +890,7 @@ export default function StudioPage() {
                       value={seed}
                       onChange={(e) => setSeed(e.target.value)}
                       placeholder="Leave empty for random"
-                      className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
+                      className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all"
                     />
                   </div>
 
@@ -942,7 +942,7 @@ export default function StudioPage() {
                       onChange={(e) => setNegativePrompt(e.target.value)}
                       placeholder="ugly, blurry, bad quality, distorted..."
                       rows={2}
-                      className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all resize-none"
+                      className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-tertiary)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20 transition-all resize-none"
                     />
                   </div>
                 </CollapsibleSection>
@@ -1088,7 +1088,7 @@ export default function StudioPage() {
                     fill
                     className="object-contain"
                   />
-                  <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 text-xs text-[var(--text-primary)] backdrop-blur-sm">
+                  <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full bg-black/60 text-xs text-white backdrop-blur-sm">
                     Reference Image
                   </div>
                 </div>
@@ -1106,7 +1106,7 @@ export default function StudioPage() {
           {variations.length > 0 && (
             <div className="max-w-xl mx-auto">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium text-white">Generated Designs</h3>
+                <h3 className="font-medium text-[var(--text-primary)]">Generated Designs</h3>
                 <span className="text-sm text-[var(--text-tertiary)]">
                   {selectedIds.length} selected
                 </span>
@@ -1176,7 +1176,7 @@ export default function StudioPage() {
                 <button
                   onClick={useAsReference}
                   disabled={!selectedVariation}
-                  className="w-full py-2.5 rounded-xl bg-[var(--bg-elevated)] text-white font-medium flex items-center justify-center gap-1.5 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs lg:text-sm"
+                  className="w-full py-2.5 rounded-xl bg-[var(--bg-elevated)] text-[var(--text-primary)] font-medium flex items-center justify-center gap-1.5 hover:bg-[var(--bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs lg:text-sm border border-[var(--border)]"
                   title="Use selected image as new reference"
                 >
                   <RefreshCw className="w-3.5 h-3.5 shrink-0" />
@@ -1185,7 +1185,7 @@ export default function StudioPage() {
 
                 <button
                   onClick={handleGenerate}
-                  className="w-full py-2.5 rounded-xl bg-[var(--bg-elevated)] text-white font-medium flex items-center justify-center gap-1.5 hover:bg-white/15 transition-all text-xs lg:text-sm"
+                  className="w-full py-2.5 rounded-xl bg-[var(--bg-elevated)] text-[var(--text-primary)] font-medium flex items-center justify-center gap-1.5 hover:bg-[var(--bg-secondary)] transition-all text-xs lg:text-sm border border-[var(--border)]"
                 >
                   <Sparkles className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">Regenerate</span>

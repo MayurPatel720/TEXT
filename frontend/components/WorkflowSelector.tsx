@@ -161,7 +161,7 @@ export default function WorkflowSelector({ selected, onSelect }: WorkflowSelecto
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-2">
         <Sparkles className="w-4 h-4 text-[var(--accent)]" />
-        <span className="text-sm font-medium text-white">Choose Generation Type</span>
+        <span className="text-sm font-medium text-[var(--text-primary)]">Choose Generation Type</span>
       </div>
       
       <div className="grid grid-cols-2 gap-2">
@@ -188,7 +188,7 @@ export default function WorkflowSelector({ selected, onSelect }: WorkflowSelecto
                 {workflow.icon}
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium ${selected === workflow.id ? 'text-white' : 'text-[var(--text-primary)]'}`}>
+                <p className="text-sm font-medium text-[var(--text-primary)]">
                   {workflow.name}
                 </p>
                 <p className="text-xs text-[var(--text-tertiary)] truncate">
