@@ -48,7 +48,7 @@ export default function HomePage() {
       <HeroGallery />
 
       {/* Category Showcase */}
-      <section className="section">
+      <section id="features" className="section scroll-mt-20">
         <div className="section-container">
           <motion.h2
             className="text-3xl md:text-4xl font-bold text-center mb-4 text-[var(--text-primary)]"
@@ -67,29 +67,36 @@ export default function HomePage() {
             From traditional sarees to modern prints — pick your fabric and let AI do the rest
           </motion.p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {CATEGORIES.map((cat, i) => (
-              <motion.button
+              <motion.div
                 key={cat}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
                 onClick={() => router.push(`/studio?category=${cat.toLowerCase()}`)}
-                className={`relative p-5 rounded-2xl bg-gradient-to-br ${CATEGORY_COLORS[cat]} border text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg fabric-overlay overflow-hidden`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    router.push(`/studio?category=${cat.toLowerCase()}`);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                className={`relative p-6 flex flex-col h-full rounded-2xl bg-gradient-to-br ${CATEGORY_COLORS[cat]} border text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg fabric-overlay overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--accent)]`}
               >
                 <div className="relative z-10">
-                  <h3 className="font-bold text-[var(--text-primary)] mb-1">{cat}</h3>
-                  <p className="text-xs text-[var(--text-secondary)]">{DESCRIPTIONS[cat]}</p>
+                  <h3 className="font-bold text-lg text-[var(--text-primary)] mb-2">{cat}</h3>
+                  <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{DESCRIPTIONS[cat]}</p>
                 </div>
-              </motion.button>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="section bg-[var(--bg-secondary)]/50">
+      <section id="how-it-works" className="section scroll-mt-20 bg-[var(--bg-secondary)]/50">
         <div className="section-container">
           <motion.h2
             className="text-3xl md:text-4xl font-bold text-center mb-4 text-[var(--text-primary)]"
@@ -108,7 +115,7 @@ export default function HomePage() {
             From upload to design in under 10 seconds
           </motion.p>
 
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {STEPS.map((step, i) => (
               <motion.div
                 key={i}

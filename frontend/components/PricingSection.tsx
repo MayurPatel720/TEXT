@@ -135,7 +135,7 @@ export function PricingSection() {
   };
 
   return (
-    <section id="pricing" className="section">
+    <section id="pricing" className="section scroll-mt-24">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       
       <div className="section-container">
@@ -152,7 +152,7 @@ export function PricingSection() {
 
           {/* Toggle */}
           <div className="flex items-center justify-center gap-4">
-            <span className={`text-sm font-medium ${billing === "monthly" ? "text-white" : "text-[var(--text-secondary)]"}`}>Monthly</span>
+            <span className={`text-sm transition-colors duration-200 ${billing === "monthly" ? "text-[var(--text-primary)] font-semibold" : "text-[var(--text-secondary)] font-normal"}`}>Monthly</span>
             <button
               onClick={() => setBilling(billing === "monthly" ? "yearly" : "monthly")}
               className="w-14 h-7 bg-[var(--bg-elevated)] rounded-full border border-[var(--border)] relative transition-colors hover:border-[var(--accent)]"
@@ -162,13 +162,13 @@ export function PricingSection() {
                 animate={{ x: billing === "monthly" ? 0 : 28 }}
               />
             </button>
-            <span className={`text-sm font-medium ${billing === "yearly" ? "text-white" : "text-[var(--text-secondary)]"}`}>
+            <span className={`text-sm transition-colors duration-200 ${billing === "yearly" ? "text-[var(--text-primary)] font-semibold" : "text-[var(--text-secondary)] font-normal"}`}>
               Yearly <span className="text-[var(--accent)] text-xs ml-1">(Save 20%)</span>
             </span>
           </div>
         </motion.div>
         
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {plans.map((plan, i) => (
             <motion.div
               key={i}
@@ -176,7 +176,7 @@ export function PricingSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`card p-8 relative flex flex-col ${plan.popular ? 'border-[var(--accent)] glow-accent' : ''}`}
+              className={`card p-8 relative flex flex-col h-full ${plan.popular ? 'border-[var(--accent)] glow-accent md:scale-105 z-10' : ''}`}
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">

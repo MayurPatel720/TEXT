@@ -79,7 +79,7 @@ export default function HistoryPage() {
     }
   };
 
-  if (status === "loading" || loading) {
+  if (status === "loading" || (status === "authenticated" && loading)) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] pt-24 pb-20 px-6">
         <Header />

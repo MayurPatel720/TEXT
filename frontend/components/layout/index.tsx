@@ -114,7 +114,7 @@ export function Header() {
               </div>
             ) : (
               <Link href="/login">
-                <button className="btn btn-primary px-4 py-2 text-sm rounded-xl">Sign In</button>
+                <button className="btn btn-primary px-6 py-2 text-sm font-semibold rounded-full whitespace-nowrap">Sign In</button>
               </Link>
             )}
           </div>
@@ -133,20 +133,42 @@ export function Header() {
         animate={{ y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          {/* Logo */}
-          <LocalTransitionLink href="/" className="flex items-center gap-3 group">
+        <div className="w-full max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <LocalTransitionLink href="/" className="flex items-center gap-2.5 group">
 
-            <div className="relative w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Image src="/logo.png" alt="FabricDesigner.AI" width={40} height={40} className="object-contain" />
+            <div className="relative w-9 h-9 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Image src="/logo.png" alt="FabricDesigner.AI" width={36} height={36} className="object-contain" />
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-lg leading-tight tracking-tight">FabricDesigner.AI</span>
-              <span className="text-[10px] text-[var(--text-secondary)] font-medium tracking-wider uppercase">Surat Textile Design Studio</span>
-            </div>
+            <span className="font-bold text-lg leading-none tracking-tight">FabricDesigner.AI</span>
           </LocalTransitionLink>
 
-
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+            <Link 
+              href="/#features" 
+              className="text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Features
+            </Link>
+            <Link 
+              href="/#how-it-works" 
+              className="text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              How It Works
+            </Link>
+            <Link 
+              href="/#pricing" 
+              className="text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Pricing
+            </Link>
+            <LocalTransitionLink 
+              href="/studio" 
+              className="text-[var(--text-secondary)] hover:text-[var(--primary)] transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] flex items-center gap-1"
+            >
+              Design Studio
+            </LocalTransitionLink>
+          </nav>
 
           {/* Actions */}
           <div className="hidden md:flex items-center gap-4">
@@ -206,7 +228,7 @@ export function Header() {
 
                 <button 
                   onClick={() => router.push("/studio")}
-                  className="btn btn-primary px-4 py-2 text-sm"
+                  className="btn btn-primary px-6 py-2.5 text-sm font-semibold rounded-full whitespace-nowrap"
                 >
                   Get Started
                 </button>
@@ -225,7 +247,7 @@ export function Header() {
 export function Footer() {
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--bg-secondary)] pt-20 pb-10">
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-6xl mx-auto px-6">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 md:gap-12 mb-16">
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
@@ -253,7 +275,7 @@ export function Footer() {
             <ul className="space-y-4 text-sm text-[var(--text-secondary)]">
               <li><LocalTransitionLink href="/#features" className="hover:text-[var(--accent)] transition-colors">Features</LocalTransitionLink></li>
               <li><LocalTransitionLink href="/studio" className="hover:text-[var(--accent)] transition-colors">Design Studio</LocalTransitionLink></li>
-              <li><LocalTransitionLink href="/pricing" className="hover:text-[var(--accent)] transition-colors">Pricing</LocalTransitionLink></li>
+              <li><LocalTransitionLink href="/#pricing" className="hover:text-[var(--accent)] transition-colors">Pricing</LocalTransitionLink></li>
               <li><LocalTransitionLink href="/showcase" className="hover:text-[var(--accent)] transition-colors">Showcase</LocalTransitionLink></li>
               <li><Link href="/api" className="hover:text-[var(--accent)] transition-colors">API</Link></li>
             </ul>
@@ -282,7 +304,7 @@ export function Footer() {
                 placeholder="Enter your email" 
                 className="input bg-[var(--bg-primary)] border-[var(--border)] focus:border-[var(--accent)]"
               />
-              <button className="btn btn-primary px-3">
+              <button className="btn btn-primary w-10 h-10 flex items-center justify-center rounded-full p-0 flex-shrink-0">
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>

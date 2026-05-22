@@ -1,4 +1,10 @@
 @import "tailwindcss";
+@source "../components/**/*.{js,ts,jsx,tsx}";
+@source "../app/**/*.{js,ts,jsx,tsx}";
+@source "./components/**/*.{js,ts,jsx,tsx}";
+@source "./app/**/*.{js,ts,jsx,tsx}";
+@source "components/**/*.{js,ts,jsx,tsx}";
+@source "app/**/*.{js,ts,jsx,tsx}";
 @import "@heroui/styles";
 
 @theme {
@@ -120,8 +126,6 @@ html {
 
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
 body {
@@ -201,7 +205,7 @@ h4 {
 
 .section-container {
   width: 100%;
-  max-width: 1280px;
+  max-width: 1152px;
   margin-inline: auto;
   padding-inline: clamp(1rem, 3vw, 1.5rem);
 }
@@ -237,68 +241,79 @@ a:not(.btn):hover::before {
 
 /* Premium Button */
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1.75rem;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  border: none;
-  cursor: pointer;
-  transition: all var(--transition-base);
-  position: relative;
-  overflow: hidden;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  padding: 0.75rem 1.75rem !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  border-radius: 9999px !important; /* Premium Pill Shape */
+  border: none !important;
+  cursor: pointer !important;
+  transition: all var(--transition-base) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  width: auto;
+  max-width: none;
+  min-width: max-content !important;
+  flex-shrink: 0 !important;
+}
+
+.btn.w-full {
+  width: 100% !important;
+  min-width: 100% !important;
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: white;
-  box-shadow: var(--shadow-sm), 0 0 20px var(--accent-glow);
+  background: var(--accent) !important;
+  color: white !important;
+  box-shadow: var(--shadow-sm), 0 0 20px var(--accent-glow) !important;
 }
 
 .btn-primary:hover {
-  background: var(--accent-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md), 0 0 30px var(--accent-strong-glow);
+  background: var(--accent-hover) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-md), 0 0 30px var(--accent-strong-glow) !important;
 }
 
 .btn-primary:active {
-  transform: translateY(0);
+  transform: translateY(0) !important;
 }
 
 .btn-secondary {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
+  background: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border) !important;
 }
 
 .btn-secondary:hover {
-  background: var(--bg-card);
-  border-color: var(--border-hover);
-  transform: translateY(-1px);
+  background: var(--bg-card) !important;
+  border-color: var(--border-hover) !important;
+  transform: translateY(-1px) !important;
 }
 
 .btn-ghost {
-  background: transparent;
-  color: var(--text-secondary);
+  background: transparent !important;
+  color: var(--text-secondary) !important;
 }
 
 .btn-ghost:hover {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
 }
 
 .btn-lg {
-  padding: 1rem 2rem;
-  font-size: 1rem;
+  padding: 1rem 2.25rem !important;
+  font-size: 1rem !important;
 }
 
 .btn-icon {
-  width: 44px;
-  height: 44px;
-  padding: 0;
+  width: 44px !important;
+  height: 44px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
 }
 
 /* Glass Card */
@@ -662,11 +677,11 @@ a:not(.btn):hover::before {
 /* Responsive utilities */
 @media (max-width: 768px) {
   .btn {
-    padding: 0.75rem 1.25rem;
+    padding: 0.625rem 1.25rem !important;
   }
 
   .btn-lg {
-    padding: 0.875rem 1.5rem;
+    padding: 0.75rem 1.5rem !important;
   }
 
   .upload-zone {

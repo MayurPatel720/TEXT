@@ -100,7 +100,7 @@ export default function HeroGallery() {
               />
             </motion.div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-white/80 text-xs font-medium border border-white/20">
+            <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-[var(--bg-elevated)] backdrop-blur-md text-[var(--text-primary)] text-xs font-medium border border-[var(--border-hover)]">
               Your Fabric
             </div>
           </div>
@@ -126,12 +126,7 @@ export default function HeroGallery() {
               AI Design
             </div>
 
-            {/* Arrow between the two */}
-            <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-[var(--accent)] flex items-center justify-center shadow-lg shadow-[var(--accent)]/40">
-                <ArrowRight className="w-5 h-5 text-white" />
-              </div>
-            </div>
+
           </div>
         </motion.div>
       </AnimatePresence>
@@ -141,7 +136,7 @@ export default function HeroGallery() {
         <div className="pointer-events-auto text-center px-4">
           <motion.h1
             key={`title-${slide.id}`}
-            className="text-[clamp(2rem,6vw,4.5rem)] font-serif font-bold text-white mb-4 drop-shadow-2xl"
+            className="text-[clamp(2.5rem,6.5vw,5rem)] font-serif font-bold text-white mb-10 leading-[1.1] drop-shadow-2xl"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.8 }}
@@ -149,16 +144,6 @@ export default function HeroGallery() {
             Upload Image<br />
             <span className="text-[var(--accent)]">Get Pattern</span>
           </motion.h1>
-
-          <motion.p
-            key={`sub-${slide.id}`}
-            className="text-base md:text-lg text-white/70 mb-8 max-w-md mx-auto"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-          >
-            From reference to print-ready textile design in seconds
-          </motion.p>
 
           <motion.div
             className="flex flex-col sm:flex-row gap-3 justify-center"
@@ -168,7 +153,8 @@ export default function HeroGallery() {
           >
             <button
               onClick={() => router.push("/studio")}
-              className="btn btn-primary btn-lg text-base shadow-xl shadow-[var(--accent)]/20"
+              className="btn btn-primary btn-lg text-[17px] font-semibold px-10 py-4 rounded-full whitespace-nowrap flex items-center justify-center gap-2 shadow-xl shadow-[var(--accent)]/20 hover:scale-[1.03] active:scale-95 transition-all duration-300 ease-out hover:shadow-2xl hover:shadow-[var(--accent)]/35 pointer-events-auto"
+              style={{ color: '#ffffff' }}
             >
               <Sparkles className="w-5 h-5" />
               Start Creating
@@ -177,19 +163,21 @@ export default function HeroGallery() {
           </motion.div>
 
           <motion.div
-            className="mt-8 flex items-center justify-center gap-6"
+            className="mt-12 inline-flex items-center justify-center gap-5 bg-black/85 backdrop-blur-md px-8 py-3 rounded-full border border-white/10 shadow-2xl pointer-events-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.6 }}
           >
-            <div className="flex items-center gap-2 text-white/60 text-xs">
-              <Sparkles className="w-3 h-3 text-[var(--accent)]" />
-              5 Free Credits
+            <div className="flex items-center gap-2 text-[13px] md:text-sm font-semibold tracking-wide" style={{ color: '#ffffff' }}>
+              <Sparkles className="w-4 h-4 text-amber-400 fill-amber-400" />
+              <span>5 Free Credits</span>
             </div>
-            <div className="w-px h-4 bg-white/20" />
-            <div className="text-white/60 text-xs">No Credit Card</div>
-            <div className="w-px h-4 bg-white/20" />
-            <div className="text-[var(--accent)] text-xs font-semibold">₹6/design</div>
+            <div className="w-px h-5" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }} />
+            <div className="text-[13px] md:text-sm font-semibold tracking-wide" style={{ color: '#ffffff' }}>No Credit Card</div>
+            <div className="w-px h-5" style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }} />
+            <div className="text-[13px] md:text-sm font-bold px-3 py-1 rounded-full tracking-wide" style={{ color: '#fbbf24', backgroundColor: 'rgba(251, 191, 36, 0.1)', border: '1px solid rgba(251, 191, 36, 0.25)' }}>
+              ₹6/design
+            </div>
           </motion.div>
         </div>
       </div>
@@ -200,7 +188,7 @@ export default function HeroGallery() {
           <button key={s.id} onClick={() => setCurrent(i)}>
             <div
               className={`h-1.5 rounded-full transition-all duration-500 ${
-                i === current ? "w-8 bg-[var(--accent)]" : "w-1.5 bg-white/30 hover:bg-white/50"
+                i === current ? "w-8 bg-[var(--accent)]" : "w-1.5 bg-white/30 hover:bg-[var(--bg-secondary)]0"
               }`}
             />
           </button>
@@ -215,7 +203,7 @@ export default function HeroGallery() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="text-white/40 text-[10px] tracking-widest uppercase"
+            className="text-[var(--text-tertiary)] text-[10px] tracking-widest uppercase"
           >
             {slide.category}
           </motion.p>
