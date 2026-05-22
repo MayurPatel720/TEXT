@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
-import { TransitionProvider } from "@/context/TransitionContext";
-import PageTransition from "@/components/PageTransition";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
@@ -146,9 +144,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} antialiased`} suppressHydrationWarning>
-        <TransitionProvider>
           <AuthProvider>
-            <PageTransition />
             {children}
             <Toaster 
               position="bottom-right"
@@ -175,7 +171,6 @@ export default function RootLayout({
               }}
             />
           </AuthProvider>
-        </TransitionProvider>
       </body>
     </html>
   );

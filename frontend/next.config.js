@@ -58,9 +58,6 @@ const nextConfig = {
   // Compression
   compress: true,
 
-  // Production optimizations
-  swcMinify: true,
-  
   // Output standalone for Docker/Vercel
   output: 'standalone',
 };

@@ -688,7 +688,7 @@ function StudioPageInner() {
         )}
       </AnimatePresence>
 
-      <div className="pt-16 h-screen flex">
+      <div className="pt-16 min-h-screen flex">
         {/* Left Sidebar - Desktop Resizable / Mobile Drawer */}
         <AnimatePresence>
           {(!isMobile || isMobileSidebarOpen) && (

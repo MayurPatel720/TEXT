@@ -135,17 +135,17 @@ export function PricingSection() {
   };
 
   return (
-    <section id="pricing" className="py-32 relative">
+    <section id="pricing" className="section">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="section-container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Simple pricing</h2>
+          <h2 className="font-bold mb-4">Simple pricing</h2>
           <p className="text-xl text-[var(--text-secondary)] mb-8">
             Start free. Scale as you grow.
           </p>
@@ -168,7 +168,7 @@ export function PricingSection() {
           </div>
         </motion.div>
         
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
           {plans.map((plan, i) => (
             <motion.div
               key={i}
@@ -176,7 +176,7 @@ export function PricingSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className={`card p-8 relative ${plan.popular ? 'border-[var(--accent)] glow-accent' : ''}`}
+              className={`card p-8 relative flex flex-col ${plan.popular ? 'border-[var(--accent)] glow-accent' : ''}`}
             >
               {plan.popular && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -184,7 +184,7 @@ export function PricingSection() {
                 </div>
               )}
               <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
-              <div className="mb-6 h-16">
+              <div className="mb-6">
                 {plan.originalPrice && (
                   <div className="text-sm text-[var(--text-secondary)] line-through decoration-red-500">
                     {plan.originalPrice}
@@ -195,7 +195,7 @@ export function PricingSection() {
                   <span className="text-[var(--text-secondary)]">{plan.period}</span>
                 </div>
               </div>
-              <ul className="space-y-3 mb-8 h-48">
+              <ul className="space-y-3 mb-8 min-h-[180px]">
                 {plan.features.map((feature, j) => (
                   <li key={j} className="flex items-center gap-2 text-[var(--text-secondary)]">
                     <Check className="w-4 h-4 text-[var(--success)]" />
@@ -205,7 +205,7 @@ export function PricingSection() {
               </ul>
               <button 
                 onClick={plan.action}
-                className={`btn w-full ${plan.popular ? 'btn-primary' : 'btn-secondary'}`}
+                className={`btn w-full mt-auto ${plan.popular ? 'btn-primary' : 'btn-secondary'}`}
               >
                 {plan.cta}
               </button>

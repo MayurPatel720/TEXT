@@ -8,8 +8,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
+import { Button, Input } from "@heroui/react";
 
-// Password validation schema
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string()
     .min(8, "Password must be at least 8 characters")
@@ -26,13 +26,12 @@ function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [tokenValid, setTokenValid] = useState<boolean | null>(null);
   const [tokenError, setTokenError] = useState("");
 
-  // Verify token on mount
   useEffect(() => {
     if (!token) {
       setTokenValid(false);
@@ -40,12 +39,11 @@ function ResetPasswordForm() {
       return;
     }
 
-    // Verify token with API
     const verifyToken = async () => {
       try {
         const response = await fetch(`/api/auth/reset-password?token=${token}`);
         const data = await response.json();
-        
+
         if (response.ok && data.valid) {
           setTokenValid(true);
         } else {
@@ -65,7 +63,7 @@ function ResetPasswordForm() {
     return (
       <div className="text-center py-8">
         <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-[var(--text-secondary)]">Verifying reset link...</p>
+        <p style={{ color: 'var(--text-secondary)' }}>Verifying reset link...</p>
       </div>
     );
   }
@@ -77,9 +75,9 @@ function ResetPasswordForm() {
           <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-3" />
           <p className="text-red-400 text-sm">{tokenError}</p>
         </div>
-        <Link 
-          href="/forgot-password" 
-          className="inline-block px-6 py-2.5 rounded-xl bg-[var(--accent)] text-white font-medium hover:opacity-90 transition-all"
+        <Link
+          href="/forgot-password"
+          className="inline-block px-6 py-2.5 rounded-xl font-medium hover:opacity-90 transition-all" style={{ backgroundColor: 'var(--accent)', color: 'white' }}
         >
           Request New Reset Link
         </Link>
@@ -110,7 +108,6 @@ function ResetPasswordForm() {
           setStatus({ success: true });
           toast.success("Password reset successful! Redirecting to login...");
 
-          // Redirect to login after success
           setTimeout(() => {
             router.push("/login");
           }, 2000);
@@ -138,74 +135,68 @@ function ResetPasswordForm() {
             </div>
           )}
 
-          {/* New Password Field */}
           <div>
-            <label className="block text-sm font-medium mb-1.5">New Password</label>
+            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>New Password</label>
             <div className="relative">
-              <Field
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="••••••••"
-                className={`w-full bg-[var(--bg-elevated)] border rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-[var(--text-tertiary)] focus:outline-none transition-all ${
-                  errors.password && touched.password
-                    ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-                    : "border-[var(--border)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
-                }`}
-              />
+              <Field name="password">
+                {({ field }: any) => (
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...field}
+                    isInvalid={errors.password && touched.password}
+                    className="w-full"
+                  />
+                )}
+              </Field>
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors" style={{ color: 'var(--text-tertiary)' }}
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            <ErrorMessage
-              name="password"
-              component="p"
-              className="mt-1.5 text-xs text-red-400"
-            />
-            <p className="text-xs text-[var(--text-tertiary)] mt-1">
+            <ErrorMessage name="password" component="p" className="mt-1.5 text-xs text-red-400" />
+            <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
               Min 8 characters with uppercase, lowercase & number
             </p>
           </div>
 
-          {/* Confirm Password Field */}
           <div>
-            <label className="block text-sm font-medium mb-1.5">Confirm Password</label>
+            <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-primary)' }}>Confirm Password</label>
             <div className="relative">
-              <Field
-                type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                placeholder="••••••••"
-                className={`w-full bg-[var(--bg-elevated)] border rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder-[var(--text-tertiary)] focus:outline-none transition-all ${
-                  errors.confirmPassword && touched.confirmPassword
-                    ? "border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-500/20"
-                    : "border-[var(--border)] focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/20"
-                }`}
-              />
+              <Field name="confirmPassword">
+                {({ field }: any) => (
+                  <Input
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...field}
+                    isInvalid={errors.confirmPassword && touched.confirmPassword}
+                    className="w-full"
+                  />
+                )}
+              </Field>
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors" style={{ color: 'var(--text-tertiary)' }}
               >
                 {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            <ErrorMessage
-              name="confirmPassword"
-              component="p"
-              className="mt-1.5 text-xs text-red-400"
-            />
+            <ErrorMessage name="confirmPassword" component="p" className="mt-1.5 text-xs text-red-400" />
           </div>
 
-          <button
+          <Button
             type="submit"
-            disabled={isSubmitting || status?.success}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[#0052cc] text-white font-semibold flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[var(--accent)]/20"
+            isDisabled={isSubmitting || status?.success}
+            fullWidth
+            className="py-6 font-semibold text-base border-none"
+            style={{ background: 'var(--accent)', color: 'white', boxShadow: '0 4px 14px var(--accent-glow)' }}
           >
             {isSubmitting ? "Resetting..." : status?.success ? "Success!" : "Reset Password"}
-          </button>
+          </Button>
         </Form>
       )}
     </Formik>
@@ -214,33 +205,32 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--accent)] opacity-5 blur-[120px] rounded-full pointer-events-none" />
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-x-hidden" style={{ backgroundColor: 'var(--bg-primary)' }}>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none" style={{ background: 'var(--accent)', opacity: 0.05, filter: 'blur(120px)' }} />
 
-      <div className="w-full max-w-md bg-[var(--bg-elevated)] border border-[var(--border)] rounded-2xl p-8 relative z-10 shadow-2xl">
+      <div className="w-full max-w-md relative z-10 border rounded-2xl shadow-xl p-8" style={{ background: 'var(--bg-elevated)', borderColor: 'var(--border)' }}>
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center relative">
               <Image src="/logo.png" alt="FabricDesigner.AI" width={32} height={32} className="object-contain" />
             </div>
-            <span className="font-bold text-lg">FabricDesigner.AI</span>
+            <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>FabricDesigner.AI</span>
           </Link>
-          <h1 className="text-2xl font-bold mb-2">Reset your password</h1>
-          <p className="text-[var(--text-secondary)]">Enter your new password below</p>
+          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Reset your password</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>Enter your new password below</p>
         </div>
 
         <Suspense fallback={
           <div className="text-center py-8">
             <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-[var(--text-secondary)]">Loading...</p>
+            <p style={{ color: 'var(--text-secondary)' }}>Loading...</p>
           </div>
         }>
           <ResetPasswordForm />
         </Suspense>
 
         <div className="mt-8 text-center text-sm">
-          <Link href="/login" className="text-[var(--accent)] hover:underline font-medium">
+          <Link href="/login" className="hover:underline font-medium" style={{ color: 'var(--accent)' }}>
             ← Back to login
           </Link>
         </div>

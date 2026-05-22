@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import TransitionLink from "@/components/TransitionLink";
+import LocalTransitionLink from "@/components/TransitionLink";
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -10,7 +10,6 @@ import { motion } from "framer-motion";
 import { Sparkles, ChevronRight, Github, Twitter, Instagram, LogOut, Clock, Home, Wand2, History, User } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "@/context/TransitionContext";
 
 
 export function Header() {
@@ -18,7 +17,6 @@ export function Header() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { triggerTransition } = useTransition();
 
   const { data: session, status } = useSession();
   const isStudio = pathname === "/studio";
@@ -46,7 +44,7 @@ export function Header() {
           {/* Left side - Desktop: matches sidebar, Mobile: compact */}
           <div className="hidden md:flex w-80 flex-shrink-0 px-4 items-center gap-3 border-r border-[var(--border)] h-full">
             <button 
-              onClick={() => triggerTransition(() => router.push("/"))}
+              onClick={() => router.push("/")}
               className="p-2 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors group"
             >
               <ChevronRight className="w-5 h-5 text-[var(--text-tertiary)] rotate-180 group-hover:text-[var(--text-primary)]" />
@@ -60,7 +58,7 @@ export function Header() {
           {/* Mobile Header - visible on small screens */}
           <div className="flex md:hidden items-center gap-3 px-4">
             <button 
-              onClick={() => triggerTransition(() => router.push("/"))}
+              onClick={() => router.push("/")}
               className="p-2 hover:bg-[var(--bg-elevated)] rounded-lg transition-colors"
             >
               <ChevronRight className="w-5 h-5 text-[var(--text-tertiary)] rotate-180" />
@@ -100,7 +98,7 @@ export function Header() {
                     <button 
                       onClick={() => {
                         setProfileMenuOpen(false);
-                        triggerTransition(() => router.push("/history"));
+                        router.push("/history");
                       }}
                       className="w-full px-4 py-2.5 text-sm text-left hover:bg-[var(--bg-secondary)] flex items-center gap-3 text-[var(--text-primary)]"
                     >
@@ -128,8 +126,8 @@ export function Header() {
   return (
     <>
       <motion.header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? "bg-[var(--bg-primary)]/80 backdrop-blur-md border-b border-[var(--border)]" : "bg-transparent"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-[var(--bg-primary)]/90 backdrop-blur-md ${
+          isScrolled ? "border-b border-[var(--border)]" : ""
         }`}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
@@ -137,7 +135,7 @@ export function Header() {
       >
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           {/* Logo */}
-          <TransitionLink href="/" className="flex items-center gap-3 group">
+          <LocalTransitionLink href="/" className="flex items-center gap-3 group">
 
             <div className="relative w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
               <Image src="/logo.png" alt="FabricDesigner.AI" width={40} height={40} className="object-contain" />
@@ -146,7 +144,7 @@ export function Header() {
               <span className="font-bold text-lg leading-tight tracking-tight">FabricDesigner.AI</span>
               <span className="text-[10px] text-[var(--text-secondary)] font-medium tracking-wider uppercase">Surat Textile Design Studio</span>
             </div>
-          </TransitionLink>
+          </LocalTransitionLink>
 
 
 
@@ -174,7 +172,7 @@ export function Header() {
                     <button 
                       onClick={() => {
                         setProfileMenuOpen(false);
-                        triggerTransition(() => router.push("/studio"));
+                        router.push("/history");
                       }}
                       className="w-full px-4 py-2 text-sm text-left hover:bg-[var(--bg-primary)] flex items-center gap-2"
                     >
@@ -185,7 +183,7 @@ export function Header() {
                     <button 
                       onClick={() => {
                         setProfileMenuOpen(false);
-                        triggerTransition(() => router.push("/history"));
+                        router.push("/history");
                       }}
                       className="w-full px-4 py-2 text-sm text-left hover:bg-[var(--bg-primary)] flex items-center gap-2"
                     >
@@ -202,12 +200,12 @@ export function Header() {
               </div>
             ) : (
               <>
-                <TransitionLink href="/login" className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors">
+                <LocalTransitionLink href="/login" className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors">
                   Sign In
-                </TransitionLink>
+                </LocalTransitionLink>
 
                 <button 
-                  onClick={() => triggerTransition(() => router.push("/studio"))}
+                  onClick={() => router.push("/studio")}
                   className="btn btn-primary px-4 py-2 text-sm"
                 >
                   Get Started
@@ -228,15 +226,15 @@ export function Footer() {
   return (
     <footer className="border-t border-[var(--border)] bg-[var(--bg-secondary)] pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 md:gap-12 mb-16">
           {/* Brand */}
           <div className="col-span-1 md:col-span-1">
-            <TransitionLink href="/" className="flex items-center gap-2 mb-6">
+            <LocalTransitionLink href="/" className="flex items-center gap-2 mb-6">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center relative">
                 <Image src="/logo.png" alt="FabricDesigner.AI" width={32} height={32} className="object-contain" />
               </div>
               <span className="font-bold text-lg">FabricDesigner.AI</span>
-            </TransitionLink>
+            </LocalTransitionLink>
 
 
             <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-6">
@@ -253,10 +251,10 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-6">Product</h4>
             <ul className="space-y-4 text-sm text-[var(--text-secondary)]">
-              <li><TransitionLink href="/#features" className="hover:text-[var(--accent)] transition-colors">Features</TransitionLink></li>
-              <li><TransitionLink href="/studio" className="hover:text-[var(--accent)] transition-colors">Design Studio</TransitionLink></li>
-              <li><TransitionLink href="/pricing" className="hover:text-[var(--accent)] transition-colors">Pricing</TransitionLink></li>
-              <li><TransitionLink href="/showcase" className="hover:text-[var(--accent)] transition-colors">Showcase</TransitionLink></li>
+              <li><LocalTransitionLink href="/#features" className="hover:text-[var(--accent)] transition-colors">Features</LocalTransitionLink></li>
+              <li><LocalTransitionLink href="/studio" className="hover:text-[var(--accent)] transition-colors">Design Studio</LocalTransitionLink></li>
+              <li><LocalTransitionLink href="/pricing" className="hover:text-[var(--accent)] transition-colors">Pricing</LocalTransitionLink></li>
+              <li><LocalTransitionLink href="/showcase" className="hover:text-[var(--accent)] transition-colors">Showcase</LocalTransitionLink></li>
               <li><Link href="/api" className="hover:text-[var(--accent)] transition-colors">API</Link></li>
             </ul>
 
@@ -318,7 +316,6 @@ function SocialLink({ icon, href }: { icon: React.ReactNode, href: string }) {
 function BottomTab() {
   const pathname = usePathname();
   const router = useRouter();
-  const { triggerTransition } = useTransition();
 
   const tabs = [
     { name: "Home", icon: <Home className="w-5 h-5" />, href: "/" },
@@ -335,7 +332,7 @@ function BottomTab() {
           return (
             <button
               key={tab.name}
-              onClick={() => triggerTransition(() => router.push(tab.href))}
+              onClick={() => router.push(tab.href)}
               className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors ${
                 isActive ? "text-[var(--accent)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
               }`}

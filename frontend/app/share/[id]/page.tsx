@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Image from "next/image";
 import Script from "next/script";
 import { Header } from "@/components/layout";
 import { Download, AlertCircle, ShoppingCart, Info, Loader2, CheckCircle2 } from "lucide-react";
 
-export default function SharePage({ params }: { params: { id: string } }) {
+export default function SharePage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
     const [image, setImage] = useState<{ url: string; seed?: number } | null>(null);
     const [unlockedUrl, setUnlockedUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -17,7 +18,7 @@ export default function SharePage({ params }: { params: { id: string } }) {
     useEffect(() => {
         async function fetchImage() {
             try {
-                const res = await fetch(`/api/share/${params.id}`);
+                const res = await fetch(`/api/share/${id}`);
                 if (!res.ok) throw new Error("Image not found");
                 const data = await res.json();
                 if (data.success && data.generation) {
@@ -33,7 +34,7 @@ export default function SharePage({ params }: { params: { id: string } }) {
         }
 
         fetchImage();
-    }, [params.id]);
+    }, [id]);
 
     useEffect(() => {
         // Advanced Anti-Screenshot / Snipping Tool Detection
@@ -90,7 +91,7 @@ export default function SharePage({ params }: { params: { id: string } }) {
 
         try {
             setPurchasing(true);
-            const response = await fetch(`/api/share/${params.id}/purchase`);
+            const response = await fetch(`/api/share/${id}/purchase`);
             const data = await response.json();
 
             if (!data.success) {
@@ -108,7 +109,7 @@ export default function SharePage({ params }: { params: { id: string } }) {
                 order_id: data.order.id,
                 handler: async function (paymentResponse: any) {
                     try {
-                        const verifyRes = await fetch(`/api/share/${params.id}/purchase`, {
+                        const verifyRes = await fetch(`/api/share/${id}/purchase`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
@@ -320,7 +321,7 @@ export default function SharePage({ params }: { params: { id: string } }) {
                                     onClick={() => {
                                         const a = document.createElement('a');
                                         a.href = unlockedUrl;
-                                        a.download = `textile-design-${params.id}.png`;
+                                        a.download = `textile-design-${id}.png`;
                                         document.body.appendChild(a);
                                         a.click();
                                         document.body.removeChild(a);

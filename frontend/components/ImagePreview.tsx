@@ -62,7 +62,7 @@ export default function ImagePreview({
 
       <div className="flex-1 p-6 min-h-[400px] flex items-center justify-center bg-[var(--bg-secondary)]">
         {displayImage ? (
-          <div className="relative overflow-auto max-w-full max-h-[600px]">
+          <div className="relative overflow-auto max-w-full max-h-[80vh]">
             <img
               src={displayImage}
               alt={showComparison ? "Original fabric image" : "Enhanced fabric image"}

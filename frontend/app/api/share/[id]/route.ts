@@ -7,10 +7,10 @@ const MOCK_IMAGE_URL = "/3.png";
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = params.id;
+        const { id } = await params;
 
         // For our UI mocking tests
         if (id.startsWith("mock-")) {

@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { Sparkles, Upload, Palette, Download, ArrowRight } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
 import { useRouter } from "next/navigation";
-import { useTransition } from "@/context/TransitionContext";
 import { PricingSection } from "@/components/PricingSection";
 import HeroGallery from "@/components/HeroGallery";
 
@@ -42,7 +41,6 @@ const STEPS = [
 
 export default function HomePage() {
   const router = useRouter();
-  const { triggerTransition } = useTransition();
 
   return (
     <main className="min-h-screen bg-[var(--bg-primary)]">
@@ -50,8 +48,8 @@ export default function HomePage() {
       <HeroGallery />
 
       {/* Category Showcase */}
-      <section className="py-16 md:py-24 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
+      <section className="section">
+        <div className="section-container">
           <motion.h2
             className="text-3xl md:text-4xl font-bold text-center mb-4 text-[var(--text-primary)]"
             initial={{ opacity: 0, y: 20 }}
@@ -77,7 +75,7 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
-                onClick={() => triggerTransition(() => router.push(`/studio?category=${cat.toLowerCase()}`))}
+                onClick={() => router.push(`/studio?category=${cat.toLowerCase()}`)}
                 className={`relative p-5 rounded-2xl bg-gradient-to-br ${CATEGORY_COLORS[cat]} border text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg fabric-overlay overflow-hidden`}
               >
                 <div className="relative z-10">
@@ -91,8 +89,8 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-16 md:py-24 px-4 sm:px-6 bg-[var(--bg-secondary)]/50">
-        <div className="max-w-5xl mx-auto">
+      <section className="section bg-[var(--bg-secondary)]/50">
+        <div className="section-container">
           <motion.h2
             className="text-3xl md:text-4xl font-bold text-center mb-4 text-[var(--text-primary)]"
             initial={{ opacity: 0, y: 20 }}
@@ -110,7 +108,7 @@ export default function HomePage() {
             From upload to design in under 10 seconds
           </motion.p>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
             {STEPS.map((step, i) => (
               <motion.div
                 key={i}
@@ -135,10 +133,10 @@ export default function HomePage() {
 
       <Footer />
 
-      {/* Sticky Mobile CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden safe-area-bottom bg-[var(--bg-elevated)] border-t border-[var(--border)] px-4 py-3">
+      {/* Sticky Mobile CTA - sits above BottomTab */}
+      <div className="fixed bottom-16 left-0 right-0 z-50 md:hidden safe-area-bottom bg-[var(--bg-elevated)] border-t border-[var(--border)] px-4 py-3">
         <button
-          onClick={() => triggerTransition(() => router.push("/studio"))}
+          onClick={() => router.push("/studio")}
           className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[var(--accent)] to-[var(--accent-hover)] text-white font-semibold flex items-center justify-center gap-2 shadow-lg"
         >
           <Sparkles className="w-4 h-4" />

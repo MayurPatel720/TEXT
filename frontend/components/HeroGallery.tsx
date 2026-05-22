@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "@/context/TransitionContext";
 
 const HERO_SLIDES = [
   {
@@ -15,18 +14,18 @@ const HERO_SLIDES = [
     output: "/hero/saree-output.png",
   },
   {
+    id: "embroidery",
+    category: "Embroidery",
+    label: "Base fabric → Embroidered textile",
+    input: "/hero/embroidery-input.png",
+    output: "/hero/embroidery-output.png",
+  },
+  {
     id: "dress",
     category: "Dress Material",
     label: "Solid fabric → Floral print",
     input: "/hero/dress-input.png",
     output: "/hero/dress-output.png",
-  },
-  {
-    id: "suiting",
-    category: "Suiting",
-    label: "Raw fabric → Premium suiting",
-    input: "/hero/suiting-input.png",
-    output: "/hero/suiting-output.png",
   },
   {
     id: "shawl",
@@ -42,20 +41,12 @@ const HERO_SLIDES = [
     input: "/hero/lehenga-input.png",
     output: "/hero/lehenga-output.png",
   },
-  {
-    id: "embroidery",
-    category: "Embroidery",
-    label: "Base fabric → Embroidered textile",
-    input: "/hero/embroidery-input.png",
-    output: "/hero/embroidery-output.png",
-  },
 ];
 
 export default function HeroGallery() {
   const [current, setCurrent] = useState(0);
   const [errored, setErrored] = useState<Set<string>>(new Set());
   const router = useRouter();
-  const { triggerTransition } = useTransition();
 
   const next = useCallback(() => {
     setCurrent((c) => (c + 1) % HERO_SLIDES.length);
@@ -82,7 +73,7 @@ export default function HeroGallery() {
   };
 
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-[#0f0f1a]">
+    <section className="relative min-h-screen w-full bg-[#0f0f1a]">
       <AnimatePresence mode="wait">
         <motion.div
           key={slide.id}
@@ -150,7 +141,7 @@ export default function HeroGallery() {
         <div className="pointer-events-auto text-center px-4">
           <motion.h1
             key={`title-${slide.id}`}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-white mb-4 drop-shadow-2xl"
+            className="text-[clamp(2rem,6vw,4.5rem)] font-serif font-bold text-white mb-4 drop-shadow-2xl"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.8 }}
@@ -176,7 +167,7 @@ export default function HeroGallery() {
             transition={{ delay: 0.6, duration: 0.6 }}
           >
             <button
-              onClick={() => triggerTransition(() => router.push("/studio"))}
+              onClick={() => router.push("/studio")}
               className="btn btn-primary btn-lg text-base shadow-xl shadow-[var(--accent)]/20"
             >
               <Sparkles className="w-5 h-5" />

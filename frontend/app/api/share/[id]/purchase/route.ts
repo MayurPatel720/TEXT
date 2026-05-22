@@ -16,10 +16,10 @@ const razorpay = new Razorpay({
 // GET: Create a Razorpay order for this specific image
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = params.id;
+        const { id } = await params;
 
         // For our UI mocking tests
         if (id.startsWith("mock-")) {
@@ -90,10 +90,10 @@ export async function GET(
 // POST: Verify payment and return the unwatermarked image URL
 export async function POST(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = params.id;
+        const { id } = await params;
         const { paymentId, orderId, signature } = await request.json();
 
         if (!process.env.RAZORPAY_KEY_SECRET) {
