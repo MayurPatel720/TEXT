@@ -6,8 +6,8 @@ import TransitionLink from "@/components/TransitionLink";
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Menu, X, ChevronRight, Github, Twitter, Instagram, LogOut, Clock, Home, Wand2, History, User } from "lucide-react";
+import { motion } from "framer-motion";
+import { Sparkles, ChevronRight, Github, Twitter, Instagram, LogOut, Clock, Home, Wand2, History, User } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "@/context/TransitionContext";
@@ -15,7 +15,6 @@ import { useTransition } from "@/context/TransitionContext";
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -23,13 +22,6 @@ export function Header() {
 
   const { data: session, status } = useSession();
   const isStudio = pathname === "/studio";
-
-  /* Nav Links for Main Header */
-  const navLinks = [
-    { name: "Features", href: "/#features" },
-    { name: "Showcase", href: "/#showcase" },
-    { name: "Pricing", href: "/#pricing" },
-  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -158,21 +150,6 @@ export function Header() {
 
 
 
-          {/* Desktop Nav - Perfectly Centered */}
-          <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8">
-            {navLinks.map((link) => (
-              <TransitionLink
-                key={link.name}
-                href={link.href}
-                className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors relative group"
-              >
-                {link.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[var(--accent)] transition-all group-hover:w-full" />
-              </TransitionLink>
-            ))}
-
-          </nav>
-
           {/* Actions */}
           <div className="hidden md:flex items-center gap-4">
             {status === "loading" ? (
@@ -240,96 +217,8 @@ export function Header() {
             )}
           </div>
 
-          {/* Mobile Menu Toggle */}
-          <button 
-            className="md:hidden p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <Menu className="w-6 h-6" />
-          </button>
         </div>
       </motion.header>
-
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-[var(--bg-primary)]/95 backdrop-blur-xl md:hidden"
-          >
-            <div className="p-6 flex flex-col h-full">
-              <div className="flex items-center justify-between mb-8">
-                <span className="font-bold text-lg">Menu</span>
-                <button 
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 rounded-full hover:bg-[var(--bg-elevated)]"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              <nav className="flex flex-col gap-6 text-lg font-medium">
-                {navLinks.map((link) => (
-                  <TransitionLink
-                    key={link.name}
-                    href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-between border-b border-[var(--border)] pb-4"
-                  >
-                    {link.name}
-                    <ChevronRight className="w-4 h-4 text-[var(--text-tertiary)]" />
-                  </TransitionLink>
-                ))}
-
-              </nav>
-
-              <div className="mt-auto flex flex-col gap-4">
-                {session ? (
-                  <>
-                    <button 
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        triggerTransition(() => router.push("/studio"));
-                      }}
-                      className="btn btn-primary w-full py-4 text-lg"
-                    >
-                      Launch Studio
-                    </button>
-                    <button onClick={handleSignOut} className="btn btn-secondary w-full py-4 text-lg">
-                      Sign Out
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <TransitionLink 
-                      href="/login" 
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="btn btn-secondary w-full py-4 text-lg text-center"
-                    >
-                      Sign In
-                    </TransitionLink>
-                    <button 
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        triggerTransition(() => router.push("/studio"));
-                      }}
-                      className="btn btn-primary w-full py-4 text-lg"
-                    >
-                      Get Started
-                    </button>
-                  </>
-                )}
-
-                <div className="text-center text-sm text-[var(--text-tertiary)] mt-4">
-                   © 2025 FabricDesigner.AI
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
       <BottomTab />
     </>
   );

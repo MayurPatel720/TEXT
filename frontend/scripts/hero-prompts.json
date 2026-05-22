@@ -1,0 +1,50 @@
+[
+  {
+    "id": "saree",
+    "category": "Saree",
+    "label": "Plain fabric → Banarasi silk design",
+    "input_prompt": "plain white cotton fabric, flat lay photography, natural daylight, no pattern, simple weave texture, minimal clean textile, soft wrinkles",
+    "output_prompt": "intricate Banarasi silk saree fabric with rich gold zari border and floral motifs, deep maroon-red body, luxurious drape, detailed weave texture, professional textile photography, 8k resolution, seamless pattern",
+    "aspect_ratio": "4:3"
+  },
+  {
+    "id": "dress",
+    "category": "Dress Material",
+    "label": "Solid fabric → Floral dress material",
+    "input_prompt": "plain light pink fabric swatch, flat lay on table, even lighting, no pattern, simple texture, solid color textile sample",
+    "output_prompt": "elegant dress material fabric with all-over floral print, soft pastel pink and cream background, delicate botanical patterns, lightweight georgette texture, fashion textile design, high quality fabric shot, 4k",
+    "aspect_ratio": "4:3"
+  },
+  {
+    "id": "suiting",
+    "category": "Suiting",
+    "label": "Raw fabric → Premium suiting texture",
+    "input_prompt": "plain grey fabric swatch, flat lay, industrial lighting, raw unfinished textile, simple weave, no pattern, neutral color",
+    "output_prompt": "premium suiting fabric with subtle pinstripe pattern in charcoal grey and navy blue, worsted wool texture, sharp tailored look, professional textile close-up, realistic fabric weave, 4k resolution",
+    "aspect_ratio": "4:3"
+  },
+  {
+    "id": "shawl",
+    "category": "Shawl",
+    "label": "Blank fabric → Paisley shawl design",
+    "input_prompt": "plain beige fabric, soft wool texture, flat lay, natural lighting, no pattern, simple knit texture, solid neutral color",
+    "output_prompt": "luxurious Pashmina shawl fabric with intricate paisley pattern in rich burgundy and gold, fine woven detail, soft draping textile, traditional Indian design, premium quality fabric texture, 8k textile photography",
+    "aspect_ratio": "4:3"
+  },
+  {
+    "id": "lehenga",
+    "category": "Lehenga",
+    "label": "Plain fabric → Bridal lehenga design",
+    "input_prompt": "plain red fabric swatch, flat lay photography, simple texture, no embroidery, solid color, basic textile sample",
+    "output_prompt": "heavy bridal lehenga fabric, rich red and gold embroidery, intricate zari work, mirror and bead embellishments, luxurious silk texture, wedding textile design, ornate traditional pattern, 4k detailed shot",
+    "aspect_ratio": "4:3"
+  },
+  {
+    "id": "embroidery",
+    "category": "Embroidery",
+    "label": "Base fabric → Embroidered textile",
+    "input_prompt": "plain cream cotton fabric, flat lay, even lighting, no threadwork, simple clean weave, blank canvas textile",
+    "output_prompt": "intricate embroidery on fabric with colorful threadwork and raised zardozi pattern, gold and silver metallic threads, detailed stitch texture, traditional Indian embroidery close-up, rich textile craftsmanship, 4k macro shot",
+    "aspect_ratio": "4:3"
+  }
+]

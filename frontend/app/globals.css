@@ -53,12 +53,57 @@
 }
 
 html {
+  scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.fabric-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 4px,
+      rgba(212, 168, 67, 0.03) 4px,
+      rgba(212, 168, 67, 0.03) 5px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 4px,
+      rgba(27, 58, 107, 0.02) 4px,
+      rgba(27, 58, 107, 0.02) 5px
+    );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.fabric-border {
+  border: 2px solid var(--border);
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      var(--accent) 0px,
+      var(--accent) 2px,
+      transparent 2px,
+      transparent 8px
+    );
+  background-size: 8px 100%;
 }
 
 * {
