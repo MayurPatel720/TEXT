@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, Shirt, Layers, User, Palette, Grid3X3, Edit3, Droplets, ImageIcon, Move3d, PaintBucket, Ribbon, Clock, Target, Waves } from "lucide-react";
+import { Sparkles, Shirt, Layers, User, Palette, Grid3X3, Edit3, Droplets, Ribbon, Tag } from "lucide-react";
 
 export interface Workflow {
   id: string;
@@ -15,148 +15,85 @@ export interface Workflow {
 
 export const WORKFLOWS: Workflow[] = [
   {
+    id: "creative_edit",
+    name: "Creative Edit",
+    description: "General textile design editing",
+    icon: <Edit3 className="w-5 h-5" />,
+    inputs: 1,
+    promptTemplate: "",
+    color: "#1B3A6B"
+  },
+  {
     id: "apply_pattern",
-    name: "Apply Pattern",
-    description: "Apply design pattern to fabric",
+    name: "Pattern Apply",
+    description: "Apply design to fabric surface",
     icon: <Layers className="w-5 h-5" />,
     inputs: 2,
-    promptTemplate: "Apply the pattern from the second image to the fabric of the garment in the first image, maintaining exact garment shape, folds, and lighting",
+    promptTemplate: "Apply the pattern from the second image onto the fabric surface, maintaining realistic folds and texture",
     color: "#8B5CF6"
   },
   {
     id: "change_material",
     name: "Change Material",
-    description: "Change fabric type (cotton → silk)",
+    description: "Cotton → Silk → Velvet",
     icon: <Shirt className="w-5 h-5" />,
     inputs: 1,
-    promptTemplate: "Change the material of this garment to [silk/velvet/cotton/linen], keeping exact same design, color, and fit",
+    promptTemplate: "Change the fabric material to premium [silk/velvet/cotton/linen], keeping exact same pattern, color, and drape",
     color: "#EC4899"
   },
   {
-    id: "merge_images",
-    name: "Merge Images",
-    description: "Combine person + scene",
-    icon: <Sparkles className="w-5 h-5" />,
-    inputs: 2,
-    promptTemplate: "Place the person from the first image [sitting on/standing by/wearing] the item from the second image, maintain exact facial features and clothing style",
-    color: "#F59E0B"
-  },
-  {
     id: "model_mockup",
-    name: "Model Mockup",
-    description: "Put design on model for Instagram",
+    name: "Model Try-On",
+    description: "Design on model photoshoot",
     icon: <User className="w-5 h-5" />,
     inputs: 1,
-    promptTemplate: "Generate an elegant Indian fashion model wearing this exact garment, professional studio lighting, Instagram-ready photoshoot, full body shot, confident pose",
+    promptTemplate: "Generate an elegant Indian fashion model wearing this exact garment, professional studio lighting, full body shot, confident pose",
     color: "#10B981"
-  },
-  {
-    id: "style_transfer",
-    name: "Style Transfer",
-    description: "Apply artistic styles",
-    icon: <Palette className="w-5 h-5" />,
-    inputs: 2,
-    promptTemplate: "Transform the design using the artistic style from the second image while maintaining the structure and composition of the first image",
-    color: "#3B82F6"
   },
   {
     id: "extract_pattern",
     name: "Extract Pattern",
-    description: "Get flat pattern from photo",
+    description: "Flat tileable pattern from photo",
     icon: <Grid3X3 className="w-5 h-5" />,
     inputs: 1,
-    promptTemplate: "Extract the fabric pattern from this garment image and render it as a flat, seamless, tileable pattern on a plain surface, suitable for textile design software",
+    promptTemplate: "Extract the fabric pattern and render it as a flat, seamless, tileable design suitable for textile manufacturing",
     color: "#6366F1"
-  },
-  {
-    id: "creative_edit",
-    name: "Creative Edit",
-    description: "General editing",
-    icon: <Edit3 className="w-5 h-5" />,
-    inputs: 1,
-    promptTemplate: "",
-    color: "#64748B"
   },
   {
     id: "color_swap",
     name: "Color Swap",
-    description: "Change fabric colors precisely",
+    description: "Change colorways precisely",
     icon: <Droplets className="w-5 h-5" />,
     inputs: 1,
-    promptTemplate: "Change the color of the fabric from [original color] to [target color], keeping exact same pattern, texture, garment shape, and lighting",
-    color: "#F43F5E"
+    promptTemplate: "Change the fabric colorway, keeping exact same pattern, weave texture, and design elements",
+    color: "#D4A843"
   },
-  // {
-  //   id: "background_change",
-  //   name: "Background Change",
-  //   description: "Replace photo background",
-  //   icon: <ImageIcon className="w-5 h-5" />,
-  //   inputs: 1,
-  //   promptTemplate: "Place this garment/model in a [studio/outdoor/luxury boutique/runway] setting with professional lighting, keeping the subject exactly the same",
-  //   color: "#0EA5E9"
-  // },
-  // {
-  //   id: "draping_sim",
-  //   name: "Draping Sim",
-  //   description: "Drape flat pattern on model",
-  //   icon: <Move3d className="w-5 h-5" />,
-  //   inputs: 2,
-  //   promptTemplate: "Drape the fabric pattern from the first image onto the model/mannequin in the second image, showing realistic folds, wrinkles, and how the fabric falls naturally",
-  //   color: "#A855F7"
-  // },
-  // {
-  //   id: "batch_colorways",
-  //   name: "Batch Colorways",
-  //   description: "Multiple color variations",
-  //   icon: <PaintBucket className="w-5 h-5" />,
-  //   inputs: 1,
-  //   promptTemplate: "Generate this same design in a [warm earth tone/cool blue/vibrant jewel tone/pastel] color palette, maintaining exact same pattern and garment structure",
-  //   color: "#D946EF"
-  // },
-  // {
-  //   id: "embroidery_effect",
-  //   name: "Embroidery Effect",
-  //   description: "Add embroidery/texture look",
-  //   icon: <Ribbon className="w-5 h-5" />,
-  //   inputs: 1,
-  //   promptTemplate: "Transform this design into detailed [thread embroidery/beadwork/sequin work/zardozi] on fabric, with realistic thread texture, shadows, and 3D depth",
-  //   color: "#E11D48"
-  // },
-  // {
-  //   id: "age_wear",
-  //   name: "Age & Wear",
-  //   description: "Simulate aging/distressing",
-  //   icon: <Clock className="w-5 h-5" />,
-  //   inputs: 1,
-  //   promptTemplate: "Show this garment after [stone washing/acid washing/sun fading/vintage aging], with realistic wear patterns, softened colors, and natural distressing",
-  //   color: "#78716C"
-  // },
-  // {
-  //   id: "print_placement",
-  //   name: "Print Placement",
-  //   description: "Place print/logo on garment",
-  //   icon: <Target className="w-5 h-5" />,
-  //   inputs: 2,
-  //   promptTemplate: "Place the print/logo from the second image onto the [chest/back/sleeve/all-over] of the garment in the first image, following fabric folds and perspective naturally",
-  //   color: "#F97316"
-  // },
-  // {
-  //   id: "fabric_texture",
-  //   name: "Fabric Texture",
-  //   description: "Generate realistic texture",
-  //   icon: <Waves className="w-5 h-5" />,
-  //   inputs: 1,
-  //   promptTemplate: "Generate a photorealistic, seamless, tileable [silk/denim/tweed/lace/velvet] fabric texture based on this reference, suitable for textile design software",
-  //   color: "#14B8A6"
-  // }
+  {
+    id: "embroidery_effect",
+    name: "Embroidery",
+    description: "Embroidery / zardozi look",
+    icon: <Ribbon className="w-5 h-5" />,
+    inputs: 1,
+    promptTemplate: "Transform this design into detailed embroidery with realistic thread texture, shadows, and 3D depth",
+    color: "#C85A48"
+  },
+  {
+    id: "batch_colorways",
+    name: "Colorways",
+    description: "Multi-color variations",
+    icon: <Palette className="w-5 h-5" />,
+    inputs: 1,
+    promptTemplate: "Generate this design in a [warm earth tone/cool blue/jewel tone/pastel] color palette, maintaining exact pattern",
+    color: "#D946EF"
+  }
 ];
 
 interface WorkflowSelectorProps {
   selected: string;
-  onSelect: (workflow: Workflow) => void;
+  onSelect: (workflowId: string) => void;
 }
 
-export default function WorkflowSelector({ selected, onSelect }: WorkflowSelectorProps) {
+export function WorkflowSelector({ selected, onSelect }: WorkflowSelectorProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-2">
@@ -168,7 +105,7 @@ export default function WorkflowSelector({ selected, onSelect }: WorkflowSelecto
         {WORKFLOWS.map((workflow) => (
           <button
             key={workflow.id}
-            onClick={() => onSelect(workflow)}
+            onClick={() => onSelect(workflow.id)}
             className={`
               relative p-3 rounded-xl text-left transition-all duration-200
               ${selected === workflow.id 

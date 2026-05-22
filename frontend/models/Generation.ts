@@ -46,6 +46,14 @@ const GenerationSchema = new mongoose.Schema({
     enum: ['none', 'processing', 'completed', 'failed'],
     default: 'none',
   },
+  upscaledImageUrl: {
+    type: String,
+    default: null,
+  },
+  workflowType: {
+    type: String,
+    default: '',
+  },
   
   // Output filename for upscaling reference
   outputFilename: {
@@ -55,8 +63,8 @@ const GenerationSchema = new mongoose.Schema({
   // Backend source
   backend: {
     type: String,
-    enum: ['replicate', 'self-hosted'],
-    default: 'self-hosted',
+    enum: ['replicate', 'self-hosted', 'fal-ai'],
+    default: 'fal-ai',
   },
   
   // Metadata
@@ -67,7 +75,7 @@ const GenerationSchema = new mongoose.Schema({
   },
   modelVersion: {
     type: String,
-    default: 'flux-kontext-dev',
+    default: 'seedream-v4',
   },
   generationTime: {
     type: Number, // Time taken in seconds

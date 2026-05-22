@@ -32,7 +32,7 @@ interface GenerationInput {
  */
 export function useGeneration(options: UseGenerationOptions = {}) {
   const {
-    pollInterval = 3000,
+    pollInterval = 1000,
     maxPolls = 60,
     onComplete,
     onError,

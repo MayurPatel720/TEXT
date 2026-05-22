@@ -31,7 +31,7 @@ export function PricingSection() {
       period: billing === "monthly" ? "/month" : "/year",
       originalPrice: billing === "yearly" ? "₹29,988" : null,
       saveLabel: billing === "yearly" ? "Save 20%" : null,
-      features: ["100 generations/mo", "HD quality", "PNG & TIFF", "Priority queue", "History saved"],
+      features: ["₹6/design", "100 generations/mo", "HD quality", "PNG & TIFF", "Priority queue", "History saved"],
       cta: "Start Pro Trial",
       popular: true,
       action: () => {

@@ -7,7 +7,7 @@ import TransitionLink from "@/components/TransitionLink";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Menu, X, ChevronRight, Github, Twitter, Instagram, LogOut, Clock } from "lucide-react";
+import { Sparkles, Menu, X, ChevronRight, Github, Twitter, Instagram, LogOut, Clock, Home, Wand2, History, User } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTransition } from "@/context/TransitionContext";
@@ -104,18 +104,7 @@ export function Header() {
                       <p className="text-sm font-medium text-white">{session.user?.name}</p>
                       <p className="text-xs text-[var(--text-tertiary)] mt-0.5 truncate">{session.user?.email}</p>
                     </div>
-                    <button 
-                      onClick={() => {
-                        setProfileMenuOpen(false);
-                        triggerTransition(() => router.push("/gpu-marketplace"));
-                      }}
-                      className="w-full px-4 py-2.5 text-sm text-left hover:bg-[var(--bg-secondary)] flex items-center gap-3 text-[var(--text-primary)]"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                      </svg>
-                      GPU Marketplace
-                    </button>
+
                     <button 
                       onClick={() => {
                         setProfileMenuOpen(false);
@@ -163,7 +152,7 @@ export function Header() {
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-lg leading-tight tracking-tight">FabricDesigner.AI</span>
-              <span className="text-[10px] text-[var(--text-secondary)] font-medium tracking-wider uppercase">Studio</span>
+              <span className="text-[10px] text-[var(--text-secondary)] font-medium tracking-wider uppercase">Surat Textile Design Studio</span>
             </div>
           </TransitionLink>
 
@@ -214,19 +203,6 @@ export function Header() {
                     >
                       <Sparkles className="w-4 h-4" />
                       Design Studio
-                    </button>
-
-                    <button 
-                      onClick={() => {
-                        setProfileMenuOpen(false);
-                        triggerTransition(() => router.push("/gpu-marketplace"));
-                      }}
-                      className="w-full px-4 py-2 text-sm text-left hover:bg-[var(--bg-primary)] flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                      </svg>
-                      GPU Marketplace
                     </button>
 
                     <button 
@@ -354,6 +330,7 @@ export function Header() {
           </motion.div>
         )}
       </AnimatePresence>
+      <BottomTab />
     </>
   );
 }
@@ -446,5 +423,40 @@ function SocialLink({ icon, href }: { icon: React.ReactNode, href: string }) {
     >
       {icon}
     </a>
+  );
+}
+
+function BottomTab() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { triggerTransition } = useTransition();
+
+  const tabs = [
+    { name: "Home", icon: <Home className="w-5 h-5" />, href: "/" },
+    { name: "Studio", icon: <Wand2 className="w-5 h-5" />, href: "/studio" },
+    { name: "History", icon: <History className="w-5 h-5" />, href: "/history" },
+    { name: "Account", icon: <User className="w-5 h-5" />, href: "/login" },
+  ];
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-[var(--bg-elevated)] border-t border-[var(--border)] safe-area-bottom">
+      <div className="flex items-center justify-around h-16">
+        {tabs.map((tab) => {
+          const isActive = pathname === tab.href || (tab.href !== "/" && pathname.startsWith(tab.href));
+          return (
+            <button
+              key={tab.name}
+              onClick={() => triggerTransition(() => router.push(tab.href))}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors ${
+                isActive ? "text-[var(--accent)]" : "text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+              }`}
+            >
+              {tab.icon}
+              <span className="text-[10px] font-medium">{tab.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 }

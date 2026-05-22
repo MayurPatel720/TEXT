@@ -5,6 +5,7 @@ import connectDB from "@/lib/mongodb";
 import Generation from "@/models/Generation";
 
 export const dynamic = 'force-dynamic';
+const MOCK_IMAGE_URL = "/3.png";
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -115,7 +116,6 @@ export async function POST(
 
         // For our UI mocking tests
         if (id.startsWith("mock-")) {
-            const MOCK_IMAGE_URL = "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=2787&auto=format&fit=crop";
             return NextResponse.json({
                 success: true,
                 message: "Purchase successful",

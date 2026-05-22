@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
@@ -29,10 +29,12 @@ import {
   Share2
 } from "lucide-react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { Header } from "@/components/layout";
 import { GenerationProgress } from "@/components/GenerationProgress";
-import WorkflowSelector, { WORKFLOWS, Workflow } from "@/components/WorkflowSelector";
+import { WorkflowSelector, WORKFLOWS } from "@/components/WorkflowSelector";
+import type { Workflow } from "@/components/WorkflowSelector";
 
 interface Variation {
   id: string;
@@ -124,7 +126,37 @@ const InfoTooltip = ({ text }: { text: string }) => (
   </div>
 );
 
+const CATEGORY_WORKFLOW_MAP: Record<string, string> = {
+  saree: "creative_edit",
+  dress_material: "apply_pattern",
+  suiting: "change_material",
+  shawl: "extract_pattern",
+  lehenga: "model_mockup",
+  print: "color_swap",
+  jacquard: "embroidery_effect",
+  embroidery: "embroidery_effect",
+  bafta: "batch_colorways",
+};
+
 export default function StudioPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full" />
+      </main>
+    }>
+      <StudioPageInner />
+    </Suspense>
+  );
+}
+
+function StudioPageInner() {
+  const searchParams = useSearchParams();
+  const categoryParam = searchParams.get("category");
+
+  const ENABLE_MOCK_GENERATION = true;
+  const MOCK_GENERATED_IMAGE_URL = "/3.png";
+
   // Generation polling state
   const [generationJobs, setGenerationJobs] = useState<{
     id: string;
@@ -139,20 +171,10 @@ export default function StudioPage() {
   const [referenceImages, setReferenceImages] = useState<ReferenceImage[]>([]);
   const [selectedRefImage, setSelectedRefImage] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
-  const [status, setStatus] = useState<GenerationStatus>("complete"); // START AS COMPLETE FOR MOCK
-  const [progress, setProgress] = useState(100); // START AS FULL FOR MOCK
-
-  // MOCK DATA FOR TESTING WATERMARK
-  const MOCK_IMAGE_URL = "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=2787&auto=format&fit=crop";
-  const [variations, setVariations] = useState<Variation[]>([
-    { id: "mock-1", url: MOCK_IMAGE_URL, imageUrl: MOCK_IMAGE_URL, status: "completed", seed: 12345 },
-    { id: "mock-2", url: MOCK_IMAGE_URL, imageUrl: MOCK_IMAGE_URL, status: "completed", seed: 67890 },
-    { id: "mock-3", url: MOCK_IMAGE_URL, imageUrl: MOCK_IMAGE_URL, status: "completed", seed: 11111 },
-    { id: "mock-4", url: MOCK_IMAGE_URL, imageUrl: MOCK_IMAGE_URL, status: "completed", seed: 22222 },
-  ]);
-  const [selectedVariation, setSelectedVariation] = useState<Variation | null>({
-    id: "mock-1", url: MOCK_IMAGE_URL, imageUrl: MOCK_IMAGE_URL, status: "completed", seed: 12345
-  });
+  const [status, setStatus] = useState<GenerationStatus>("idle");
+  const [progress, setProgress] = useState(0);
+  const [variations, setVariations] = useState<Variation[]>([]);
+  const [selectedVariation, setSelectedVariation] = useState<Variation | null>(null);
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -171,7 +193,10 @@ export default function StudioPage() {
   const [guidance, setGuidance] = useState(2.5);
   const [negativePrompt, setNegativePrompt] = useState("");
   const [steps, setSteps] = useState(25);
-  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow>(WORKFLOWS[0]);
+  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow>(() => {
+    const categoryWorkflowId = categoryParam ? CATEGORY_WORKFLOW_MAP[categoryParam] : undefined;
+    return WORKFLOWS.find(w => w.id === categoryWorkflowId) || WORKFLOWS[0];
+  });
 
   // Collapsible sections
   const [showImageGuidance, setShowImageGuidance] = useState(true);
@@ -186,6 +211,8 @@ export default function StudioPage() {
   const sidebarRef = useRef<HTMLElement>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mockProgressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const mockCompletionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check for mobile viewport
   useEffect(() => {
@@ -353,7 +380,49 @@ export default function StudioPage() {
   useEffect(() => {
     return () => {
       pollTimeoutsRef.current.forEach(clearTimeout);
+      if (mockProgressIntervalRef.current) clearInterval(mockProgressIntervalRef.current);
+      if (mockCompletionTimeoutRef.current) clearTimeout(mockCompletionTimeoutRef.current);
     };
+  }, []);
+
+  const runMockGeneration = useCallback(() => {
+    setStatus("generating");
+    setProgress(0);
+    setError(null);
+    setVariations([]);
+    setSelectedIds([]);
+    setSelectedVariation(null);
+    setGenerationJobs([]);
+    pollTimeoutsRef.current.forEach(clearTimeout);
+    pollTimeoutsRef.current = [];
+
+    if (mockProgressIntervalRef.current) clearInterval(mockProgressIntervalRef.current);
+    if (mockCompletionTimeoutRef.current) clearTimeout(mockCompletionTimeoutRef.current);
+
+    mockProgressIntervalRef.current = setInterval(() => {
+      setProgress(prev => {
+        const next = Math.min(prev + 1, 95);
+        return next;
+      });
+    }, 150);
+
+    mockCompletionTimeoutRef.current = setTimeout(() => {
+      if (mockProgressIntervalRef.current) clearInterval(mockProgressIntervalRef.current);
+
+      const mockVariation: Variation = {
+        id: `mock-${Date.now()}`,
+        url: MOCK_GENERATED_IMAGE_URL,
+        imageUrl: MOCK_GENERATED_IMAGE_URL,
+        status: "completed",
+        seed: 12345,
+      };
+
+      setProgress(100);
+      setVariations([mockVariation]);
+      setSelectedVariation(mockVariation);
+      setSelectedIds([]);
+      setStatus("complete");
+    }, 15000);
   }, []);
 
   // Generate variations (async with polling)
@@ -361,6 +430,11 @@ export default function StudioPage() {
     const refImageUrl = getCurrentRefImageUrl();
     if (!refImageUrl || !prompt.trim()) {
       setError("Please upload an image and enter a prompt");
+      return;
+    }
+
+    if (ENABLE_MOCK_GENERATION) {
+      runMockGeneration();
       return;
     }
 
@@ -430,7 +504,7 @@ export default function StudioPage() {
       setError(err.message || "Something went wrong");
       setStatus("error");
     }
-  }, [getCurrentRefImageUrl, prompt, negativePrompt, styleStrength, structureStrength, numVariations, seed, aspectRatio, outputFormat, quality, guidance, steps, referenceImages, selectedRefImage, selectedWorkflow, startPolling]);
+  }, [ENABLE_MOCK_GENERATION, getCurrentRefImageUrl, prompt, negativePrompt, runMockGeneration, styleStrength, structureStrength, numVariations, seed, aspectRatio, outputFormat, quality, guidance, steps, referenceImages, selectedRefImage, selectedWorkflow, startPolling]);
 
   // Toggle selection
   const toggleSelection = useCallback((id: string) => {
@@ -626,7 +700,7 @@ export default function StudioPage() {
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
               className={`
                 ${isMobile
-                  ? 'fixed left-0 top-0 bottom-0 z-50 w-[320px] pt-16'
+                  ? 'fixed left-0 top-0 bottom-0 z-50 w-[85vw] max-w-[320px] pt-16'
                   : 'relative flex-shrink-0'
                 }
                 border-r border-[var(--border)] bg-[var(--bg-secondary)] flex flex-col overflow-hidden
@@ -648,9 +722,9 @@ export default function StudioPage() {
                 <div className="p-4 border-b border-[var(--border)]">
                   <WorkflowSelector
                     selected={selectedWorkflow.id}
-                    onSelect={(workflow) => {
+                    onSelect={(workflowId) => {
+                      const workflow = WORKFLOWS.find(w => w.id === workflowId) || WORKFLOWS[0];
                       setSelectedWorkflow(workflow);
-                      // Set prompt template when workflow changes
                       if (workflow.promptTemplate && !prompt) {
                         setPrompt(workflow.promptTemplate);
                       }

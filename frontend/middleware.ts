@@ -35,7 +35,7 @@ const cspDirectives = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: blob: https: http:",
   "font-src 'self' https://fonts.gstatic.com",
-  "connect-src 'self' https://api.razorpay.com https://*.replicate.delivery https://*.vast.ai wss:",
+  "connect-src 'self' https://api.razorpay.com https://*.replicate.delivery https://fal.ai wss:",
   "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
@@ -68,7 +68,6 @@ const publicRoutes = [
   '/forgot-password',
   '/reset-password',
   '/api/auth',
-  '/gpu-marketplace',
 ];
 
 // ============================================================================

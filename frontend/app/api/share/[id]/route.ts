@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import Generation from "@/models/Generation";
 
+const MOCK_IMAGE_URL = "/3.png";
+
 export async function GET(
     request: NextRequest,
     { params }: { params: { id: string } }
@@ -12,7 +14,6 @@ export async function GET(
 
         // For our UI mocking tests
         if (id.startsWith("mock-")) {
-            const MOCK_IMAGE_URL = "https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=2787&auto=format&fit=crop";
             return NextResponse.json({
                 success: true,
                 generation: {

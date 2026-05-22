@@ -3,53 +3,68 @@
 @tailwind utilities;
 
 :root {
-  /* Premium Light Theme */
-  --bg-primary: #FAFAFA;
-  --bg-secondary: #F4F4F5;
+  /* Surat Textile Theme — warm ivory, indigo, rose gold */
+  --bg-primary: #FFF8F0;
+  --bg-secondary: #FFF0E0;
   --bg-elevated: #FFFFFF;
   --bg-card: #FFFFFF;
 
-  --accent: #0066FF;
-  --accent-hover: #0052CC;
-  --accent-glow: rgba(0, 102, 255, 0.15);
-  --accent-strong-glow: rgba(0, 102, 255, 0.3);
+  --primary: #1B3A6B;
+  --primary-hover: #152E56;
+  --primary-glow: rgba(27, 58, 107, 0.15);
 
-  --success: #10B981;
-  --success-glow: rgba(16, 185, 129, 0.15);
-  --warning: #F59E0B;
-  --error: #EF4444;
+  --accent: #D4A843;
+  --accent-hover: #B89130;
+  --accent-glow: rgba(212, 168, 67, 0.15);
+  --accent-strong-glow: rgba(212, 168, 67, 0.3);
 
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
+  --secondary: #C85A48;
+  --secondary-hover: #A84838;
+
+  --success: #1B8D5D;
+  --success-glow: rgba(27, 141, 93, 0.15);
+
+  --error: #DC2626;
+  --error-glow: rgba(220, 38, 38, 0.1);
+
+  --text-primary: #1A1A2E;
+  --text-secondary: #4A4A5A;
   --text-tertiary: #94A3B8;
 
-  --border: rgba(0, 0, 0, 0.08);
-  --border-hover: rgba(0, 0, 0, 0.15);
-  --border-active: rgba(0, 102, 255, 0.5);
+  --border: #E8E0D8;
+  --border-light: #F0EBE5;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.03);
-  --shadow-glow: 0 0 40px var(--accent-glow);
-
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-glow: 0 0 40px var(--primary-glow);
+  
+  --radius: 12px;
   --radius-sm: 8px;
-  --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
+}
 
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+.fabric-bg {
+  background-image: 
+    linear-gradient(45deg, transparent 25%, rgba(212, 168, 67, 0.02) 25%, rgba(212, 168, 67, 0.02) 50%, transparent 50%, transparent 75%, rgba(212, 168, 67, 0.02) 75%),
+    linear-gradient(135deg, transparent 25%, rgba(27, 58, 107, 0.02) 25%, rgba(27, 58, 107, 0.02) 50%, transparent 50%, transparent 75%, rgba(27, 58, 107, 0.02) 75%);
+  background-size: 60px 60px, 80px 80px;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-html {
-  scroll-behavior: smooth;
 }
 
 body {
