@@ -152,7 +152,7 @@ export default function StudioPage() {
 
 function StudioPageInner() {
   const searchParams = useSearchParams();
-  const categoryParam = searchParams.get("category");
+  const categoryParam = searchParams?.get("category");
 
   const ENABLE_MOCK_GENERATION = true;
   const MOCK_GENERATED_IMAGE_URL = "/3.png";
@@ -783,7 +783,7 @@ function StudioPageInner() {
                   onToggle={() => setShowImageGuidance(!showImageGuidance)}
                 >
                   {/* Reference Images Grid */}
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2">
                     {referenceImages.map((img) => (
                       <div
                         key={img.id}
@@ -1186,7 +1186,7 @@ function StudioPageInner() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-6">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-2 md:gap-3 mb-6">
                 {variations.map((variation, i) => (
                   <motion.div
                     key={variation.id}
@@ -1226,7 +1226,7 @@ function StudioPageInner() {
               </div>
 
               {/* Actions */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-2 md:gap-3">
                 <button
                   onClick={handleDownload}
                   disabled={selectedIds.length === 0}

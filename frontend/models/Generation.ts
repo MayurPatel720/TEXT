@@ -63,7 +63,7 @@ const GenerationSchema = new mongoose.Schema({
   // Backend source
   backend: {
     type: String,
-    enum: ['replicate', 'self-hosted', 'fal-ai'],
+    enum: ['replicate', 'self-hosted', 'fal-ai', 'cloudflare'],
     default: 'fal-ai',
   },
   

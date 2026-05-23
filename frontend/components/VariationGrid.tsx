@@ -14,7 +14,7 @@ export default function VariationGrid({
   onSelect,
 }: VariationGridProps) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" role="list" aria-label="Design variations">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4" role="list" aria-label="Design variations">
       {variations.map((variation) => (
         <div
           key={variation.id}

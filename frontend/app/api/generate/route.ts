@@ -1,25 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import connectDB from "@/lib/mongodb";
-import User from "@/models/User";
-import Generation from "@/models/Generation";
-import { authOptions } from "@/lib/auth";
-import { generateWithFal } from "@/lib/fal-ai";
+import { NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth"
+import connectDB from "@/lib/mongodb"
+import User from "@/models/User"
+import Generation from "@/models/Generation"
+import { authOptions } from "@/lib/auth"
+import { generateWithFal } from "@/lib/fal-ai"
+import { generateWithCloudflare } from "@/lib/cloudflare-ai"
+import { getActiveBackend } from "@/lib/appConfig"
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic"
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions)
 
     if (!session?.user?.email) {
       return NextResponse.json(
         { error: "Unauthorized - Please sign in" },
         { status: 401 }
-      );
+      )
     }
 
-    const body = await request.json();
+    const body = await request.json()
     const {
       image,
       image2,
@@ -31,96 +33,128 @@ export async function POST(request: NextRequest) {
       guidance,
       steps,
       workflow_type,
-    } = body;
+    } = body
 
-    if (!image || !prompt) {
+    if (!prompt) {
       return NextResponse.json(
-        { error: "Image and prompt are required" },
+        { error: "Prompt is required" },
         { status: 400 }
-      );
+      )
     }
 
-    await connectDB();
+    await connectDB()
 
-    const user = await User.findOne({ email: session.user.email });
+    const user = await User.findOne({ email: session.user.email })
 
     if (!user) {
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
-      );
+      )
     }
 
-    const creditsNeeded = num_variations || 1;
-    if (user.credits < creditsNeeded) {
-      return NextResponse.json(
-        { error: `Insufficient credits. You need ${creditsNeeded} credits but have ${user.credits}.` },
-        { status: 403 }
-      );
+    const activeBackend = await getActiveBackend()
+    const isCloudflare = activeBackend === "cloudflare"
+    const numImages = Math.max(1, num_variations || 1)
+
+    if (!isCloudflare) {
+      if (user.credits < numImages) {
+        return NextResponse.json(
+          {
+            error: `Insufficient credits. You need ${numImages} credits but have ${user.credits}.`,
+          },
+          { status: 403 }
+        )
+      }
     }
 
-    const numImages = num_variations || 1;
-    const variations = [];
+    const variations: Array<{
+      id: string
+      status: string
+      imageUrl?: string
+      seed?: number
+      error?: string
+    }> = []
 
     for (let i = 0; i < numImages; i++) {
       try {
-        const { images, seed: resultSeed, executionTime } = await generateWithFal({
-          prompt,
-          image_base64: image,
-          image2_base64: image2,
-          negative_prompt: negative_prompt || "",
-          guidance: guidance || 3.5,
-          num_images: 1,
-          seed: seed ? seed + i : undefined,
-          aspect_ratio: aspect_ratio || "1:1",
-          workflow_type: workflow_type || "creative_edit",
-          steps: steps || 25,
-        });
+        let result: Awaited<ReturnType<typeof generateWithFal | typeof generateWithCloudflare>>
 
-        const imageUrl = images[0]?.url || "";
+        if (isCloudflare) {
+          result = await generateWithCloudflare({
+            prompt,
+            negative_prompt: negative_prompt || "",
+            guidance: guidance || 7.5,
+            num_images: 1,
+            seed: seed ? seed + i : undefined,
+            steps: steps || 20,
+          })
+        } else {
+          result = await generateWithFal({
+            prompt,
+            image_base64: image,
+            image2_base64: image2,
+            negative_prompt: negative_prompt || "",
+            guidance: guidance || 3.5,
+            num_images: 1,
+            seed: seed ? seed + i : undefined,
+            aspect_ratio: aspect_ratio || "1:1",
+            workflow_type: workflow_type || "creative_edit",
+            steps: steps || 25,
+          })
+        }
+
+        const imageUrl = result.images[0]?.url || ""
+        const modelVersion = isCloudflare ? "sdxl-base-1.0" : "seedream-v4"
 
         const generation = await Generation.create({
           userId: user._id,
           prompt,
-          referenceImageUrl: imageUrl,
+          referenceImageUrl: image || "",
           generatedImageUrl: imageUrl,
-          status: 'completed',
-          modelVersion: 'seedream-v4',
-          backend: 'fal-ai',
-          generationTime: executionTime,
+          status: "completed",
+          modelVersion,
+          backend: activeBackend,
+          generationTime: result.executionTime,
           workflowType: workflow_type || "creative_edit",
-        });
+        })
 
         variations.push({
           id: generation._id.toString(),
-          status: 'completed',
+          status: "completed",
           imageUrl,
-          seed: resultSeed,
-        });
+          seed: result.seed,
+        })
       } catch (error) {
-        console.error(`Error generating variation ${i}:`, error);
+        console.error(`Error generating variation ${i}:`, error)
         variations.push({
           id: `error-${i}`,
-          status: 'failed',
-          error: 'Generation failed',
-        });
+          status: "failed",
+          error: error instanceof Error ? error.message : "Generation failed",
+        })
       }
     }
 
-    await user.deductCredits(variations.length);
+    if (!isCloudflare) {
+      const completedCount = variations.filter((v) => v.status === "completed").length
+      if (completedCount > 0) {
+        await user.deductCredits(completedCount)
+      }
+    }
 
     return NextResponse.json({
       success: true,
       variations,
-      model: "seedream-v4",
-      backend: "fal-ai",
+      model: isCloudflare ? "sdxl-base-1.0" : "seedream-v4",
+      backend: activeBackend,
+      isFreeGeneration: isCloudflare,
       creditsRemaining: user.credits,
-    });
+    })
   } catch (error) {
-    console.error("Generation error:", error);
+    console.error("Generation error:", error)
     return NextResponse.json(
       { error: "An unexpected error occurred" },
       { status: 500 }
-    );
+    )
   }
 }

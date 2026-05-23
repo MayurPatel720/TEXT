@@ -336,7 +336,7 @@ function SocialLink({ icon, href }: { icon: React.ReactNode, href: string }) {
 }
 
 function BottomTab() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const router = useRouter();
 
   const tabs = [

@@ -67,7 +67,7 @@ export default function HomePage() {
             From traditional sarees to modern prints — pick your fabric and let AI do the rest
           </motion.p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
             {CATEGORIES.map((cat, i) => (
               <motion.div
                 key={cat}

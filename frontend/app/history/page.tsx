@@ -88,7 +88,7 @@ export default function HistoryPage() {
             <div className="h-8 w-48 shimmer rounded-lg mb-2" />
             <div className="h-4 w-24 shimmer rounded-lg" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="card p-0 overflow-hidden">
                 <div className="aspect-square shimmer" />
@@ -202,7 +202,7 @@ export default function HistoryPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4 md:gap-6">
               {generations.map((gen, idx) => (
                 <motion.div
                   key={gen._id}

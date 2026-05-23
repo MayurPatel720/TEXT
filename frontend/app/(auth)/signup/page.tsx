@@ -14,7 +14,7 @@ import { Button, Input } from "@heroui/react";
 
 function AuthError() {
   const searchParams = useSearchParams();
-  const authError = searchParams.get("error");
+  const authError = searchParams?.get("error");
 
   if (!authError) return null;
 
