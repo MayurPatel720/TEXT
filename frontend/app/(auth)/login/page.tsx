@@ -86,8 +86,8 @@ export default function LoginPage() {
             </div>
             <span className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>FabricDesigner.AI</span>
           </Link>
-          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Welcome back</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>Sign in to your account</p>
+          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Sign in</h1>
+          <p style={{ color: 'var(--text-secondary)' }}>to your account</p>
         </div>
 
         <Suspense fallback={null}>

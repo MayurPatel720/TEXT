@@ -113,8 +113,12 @@ export default function AdminDashboard() {
         return
       }
 
-      if (!statsRes.ok || !usersRes.ok) {
-        throw new Error("Failed to fetch data")
+      if (!statsRes.ok || !usersRes.ok || !configRes.ok) {
+        const failed = []
+        if (!statsRes.ok) failed.push(`stats (${statsRes.status})`)
+        if (!usersRes.ok) failed.push(`users (${usersRes.status})`)
+        if (!configRes.ok) failed.push(`config (${configRes.status})`)
+        throw new Error(`Failed to fetch: ${failed.join(", ")}`)
       }
 
       const [statsData, usersData, configData] = await Promise.all([
@@ -142,8 +146,9 @@ export default function AdminDashboard() {
   }, [status, router])
 
   useEffect(() => {
+    if (status !== "authenticated") return
     fetchData()
-  }, [fetchData])
+  }, [fetchData, status])
 
   const handleToggleBackend = async () => {
     const newBackend = activeBackend === "cloudflare" ? "fal-ai" : "cloudflare"
