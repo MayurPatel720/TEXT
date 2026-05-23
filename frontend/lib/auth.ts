@@ -6,6 +6,11 @@ import { compare } from "bcryptjs";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
+  .split(",")
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
 export const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
@@ -127,13 +132,42 @@ export const authOptions: AuthOptions = {
               await existingUser.save();
             }
           }
-          
+
+          // Auto-promote admin users
+          if (
+            existingUser &&
+            ADMIN_EMAILS.includes(existingUser.email?.toLowerCase() || "") &&
+            existingUser.role !== "admin"
+          ) {
+            existingUser.role = "admin";
+            await existingUser.save();
+            console.log(`👑 Auto-promoted ${existingUser.email} to admin`);
+          }
+
           return true;
         } catch (error) {
           console.error("OAuth signIn error:", error);
           return false;
         }
       }
+
+      // Auto-promote admin users (for credentials login too)
+      if (user.email) {
+        try {
+          await connectDB();
+          if (ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+            const dbUser = await User.findOne({ email: user.email.toLowerCase() });
+            if (dbUser && dbUser.role !== "admin") {
+              dbUser.role = "admin";
+              await dbUser.save();
+              console.log(`👑 Auto-promoted ${user.email} to admin`);
+            }
+          }
+        } catch (err) {
+          console.error("Admin promotion error:", err);
+        }
+      }
+
       return true;
     },
     async jwt({ token, user, account }) {
@@ -145,6 +179,22 @@ export const authOptions: AuthOptions = {
         token.requires2FA = user.requires2FA;
       }
       
+      // Ensure admin role from DB
+      if (!account?.provider) {
+        try {
+          await connectDB();
+          const dbUser = await User.findOne({ email: token.email?.toString().toLowerCase() });
+          if (dbUser) {
+            token.id = dbUser._id.toString();
+            token.credits = dbUser.credits;
+            token.plan = dbUser.plan;
+            token.role = dbUser.role || "user";
+          }
+        } catch (error) {
+          console.error("JWT callback error:", error);
+        }
+      }
+
       // Fetch fresh user data from DB on token refresh
       if (account?.provider && (account.provider === "google" || account.provider === "github")) {
         try {
