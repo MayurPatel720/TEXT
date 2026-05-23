@@ -131,3 +131,60 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }
 }
+
+/**
+ * DELETE /api/admin/users
+ * Delete a user (admin only)
+ */
+export async function DELETE(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    await connectDB();
+
+    const adminUser = await User.findOne({ email: session.user.email });
+    if (!adminUser || adminUser.role !== 'admin') {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+
+    if (!userId) {
+      return NextResponse.json({ error: 'userId query parameter is required' }, { status: 400 });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    if (user.email === adminUser.email) {
+      return NextResponse.json({ error: 'Cannot delete your own admin account' }, { status: 400 });
+    }
+
+    const deletedEmail = user.email;
+    const deletedName = user.name;
+
+    // Delete user's generations first
+    const Generation = (await import('@/models/Generation')).default;
+    const deletedGens = await Generation.deleteMany({ userId: user._id });
+
+    // Delete the user
+    await User.findByIdAndDelete(userId);
+
+    console.log(`🗑️ Admin ${adminUser.email} deleted user ${deletedEmail} (${deletedName}) and ${deletedGens.deletedCount} generations`);
+
+    return NextResponse.json({
+      success: true,
+      message: `Deleted ${deletedName || deletedEmail} and ${deletedGens.deletedCount} generations`,
+    });
+  } catch (error) {
+    console.error('Admin user delete error:', error);
+    return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
+  }
+}

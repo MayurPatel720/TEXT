@@ -94,6 +94,9 @@ export default function AdminDashboard() {
   const [editField, setEditField] = useState<"plan" | "credits" | null>(null)
   const [editValue, setEditValue] = useState<string | number>("")
 
+  const [deletingUser, setDeletingUser] = useState<string | null>(null)
+  const [deletingUserName, setDeletingUserName] = useState("")
+
   const fetchData = useCallback(async () => {
     setLoading(true)
     setError("")
@@ -222,6 +225,31 @@ export default function AdminDashboard() {
   const handleCancelEdit = () => {
     setEditingUser(null)
     setEditField(null)
+  }
+
+  const handleDeleteUser = async () => {
+    if (!deletingUser) return
+
+    try {
+      const res = await fetch(`/api/admin/users?userId=${deletingUser}`, {
+        method: "DELETE",
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || "Failed to delete user")
+        return
+      }
+
+      setSuccessMessage(data.message || "User deleted")
+      setTimeout(() => setSuccessMessage(""), 4000)
+      setDeletingUser(null)
+      setDeletingUserName("")
+      fetchData()
+    } catch {
+      setError("Failed to delete user")
+    }
   }
 
   if (status === "loading" || (loading && !stats)) {
@@ -468,12 +496,15 @@ export default function AdminDashboard() {
                   <th className="text-left py-3 px-4 text-sm font-medium text-[var(--text-secondary)] whitespace-nowrap">
                     Joined
                   </th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-[var(--text-secondary)] whitespace-nowrap">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-[var(--text-tertiary)]">
+                    <td colSpan={8} className="py-12 text-center text-[var(--text-tertiary)]">
                       {search || planFilter ? "No users match your filters" : "No users found"}
                     </td>
                   </tr>
@@ -558,13 +589,13 @@ export default function AdminDashboard() {
                               className="font-mono text-sm hover:text-[var(--accent)] transition-colors"
                               title="Click to edit credits"
                             >
-                              {user.credits.toLocaleString()}
+                              {(user.credits ?? 0).toLocaleString()}
                             </button>
                           )}
                         </td>
 
                         <td className="py-3 px-4 text-sm text-[var(--text-secondary)]">
-                          {user.totalGenerations.toLocaleString()}
+                          {(user.totalGenerations ?? 0).toLocaleString()}
                         </td>
 
                         <td className="py-3 px-4">
@@ -587,6 +618,18 @@ export default function AdminDashboard() {
                                 year: "numeric",
                               })
                             : "—"}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <button
+                            onClick={() => {
+                              setDeletingUser(user._id)
+                              setDeletingUserName(user.name || user.email)
+                            }}
+                            className="p-1.5 rounded-lg text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            title="Delete user"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
                         </td>
                       </tr>
                     )
@@ -622,6 +665,53 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deletingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[var(--bg-elevated)] border border-[var(--border)] rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-full bg-red-500/20 text-red-400">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">Delete User</h3>
+                <p className="text-sm text-[var(--text-secondary)]">
+                  This action cannot be undone
+                </p>
+              </div>
+            </div>
+
+            <p className="text-sm text-[var(--text-secondary)] mb-6">
+              Are you sure you want to delete <span className="font-medium text-[var(--text-primary)]">{deletingUserName}</span>?
+              All their generations will also be permanently removed.
+            </p>
+
+            <div className="flex items-center gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setDeletingUser(null)
+                  setDeletingUserName("")
+                }}
+                className="px-4 py-2 rounded-xl border border-[var(--border)] text-sm font-medium hover:bg-[var(--bg-primary)] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteUser}
+                className="px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors flex items-center gap-2"
+              >
+                <XCircle className="w-4 h-4" />
+                Delete User
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }
